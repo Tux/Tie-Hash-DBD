@@ -1,0 +1,9 @@
+Changes
+MANIFEST
+Makefile.PL
+lib/Tie/DBD.pm
+README
+t/00_pod.t
+t/01_pod.t
+t/10_hash.t
+examples/copy.pl
