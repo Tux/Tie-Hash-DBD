@@ -53,15 +53,16 @@ sub TIEHASH
 
     unless ($tbl) {
 	$tbl = "t_tie_dbd_$$" . "_" . ++$dbdx;
-	my $type = {
-	    Oracle	=> [ "text",  "text"  ],
-	    Pg		=> [ "bytea", "bytea" ],
+	my $type = {	# Oracle only support TEMP tables as of Ora-10
+	    Oracle	=> [ "temporary", "blob",              "blob"  ],
+	    Pg		=> [ "temp",      "bytea primary key", "bytea" ],
+	    mysql	=> [ "temporary", "blob",              "blob"  ],
 	    }->{$dbh->{Driver}{Name}} or croak "I don't support your database";
 	local $dbh->{PrintWarn} = 0;
 	$dbh->do (
-	    "create temp table $tbl (".
-		"h_key   $type->[0] primary key,".
-		"h_value $type->[1])");
+	    "create $type->[0] table $tbl (".
+		"h_key   $type->[1],".
+		"h_value $type->[2])");
 	}
 
     my $h = {
