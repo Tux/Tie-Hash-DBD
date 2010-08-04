@@ -40,6 +40,12 @@ is_deeply (\%hash, { c1 => 1, c2 => 2 },		"Hash");
 # Scalar/count
 is (scalar %hash, 2,					"Scalar");
 
+# Binary data
+my $anr = pack "sss", 102, 102, 025;
+ok ($hash{c4} = $anr,					"Binary value");
+ok ($hash{$anr} = 42,					"Binary key");
+ok ($hash{$anr} = $anr,					"Binary key and value");
+
 # clear
 %hash = ();
 is_deeply (\%hash, {},					"Clear");

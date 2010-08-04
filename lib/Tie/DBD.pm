@@ -54,21 +54,39 @@ sub TIEHASH
     unless ($tbl) {
 	$tbl = "t_tie_dbd_$$" . "_" . ++$dbdx;
 	my $type = {
-	    Oracle	=> [ "text", "text"  ],
-	    Pg		=> [ "text", "bytea" ],
+	    Oracle	=> [ "text",  "text"  ],
+	    Pg		=> [ "bytea", "bytea" ],
 	    }->{$dbh->{Driver}{Name}} or croak "I don't support your database";
-	$dbh->do ("create temp table $tbl (key $type->[0], value $type->[1])");
+	local $dbh->{PrintWarn} = 0;
+	$dbh->do (
+	    "create temp table $tbl (".
+		"h_key   $type->[0] primary key,".
+		"h_value $type->[1])");
 	}
-    bless {
+
+    my $h = {
 	dbh => $dbh,
 	tbl => $tbl,
 	ins => $dbh->prepare ("insert into $tbl values (?, ?)"),
-	del => $dbh->prepare ("delete from $tbl where key = ?"),
-	upd => $dbh->prepare ("update $tbl set value = ? where key = ?"),
-	sel => $dbh->prepare ("select value from $tbl where key = ?"),
+	del => $dbh->prepare ("delete from $tbl where h_key = ?"),
+	upd => $dbh->prepare ("update $tbl set h_value = ? where h_key = ?"),
+	sel => $dbh->prepare ("select h_value from $tbl where h_key = ?"),
 	cnt => $dbh->prepare ("select count (*) from $tbl"),
-	ctv => $dbh->prepare ("select count (*) from $tbl where key = ?"),
-	}, $pkg;
+	ctv => $dbh->prepare ("select count (*) from $tbl where h_key = ?"),
+	};
+
+    my $sth = $dbh->prepare ("select h_key, h_value from $tbl");
+    $sth->execute;
+    my @typ = @{$sth->{TYPE}};
+    $h->{ins}->bind_param (1, undef, $typ[0]);
+    $h->{ins}->bind_param (2, undef, $typ[1]);
+    $h->{del}->bind_param (1, undef, $typ[0]);
+    $h->{upd}->bind_param (1, undef, $typ[1]);
+    $h->{upd}->bind_param (2, undef, $typ[0]);
+    $h->{sel}->bind_param (1, undef, $typ[0]);
+    $h->{ctv}->bind_param (1, undef, $typ[0]);
+
+    bless $h, $pkg;
     } # TIEHASH
 
 sub STORE
@@ -112,7 +130,7 @@ sub FETCH
 sub FIRSTKEY
 {
     my $self = shift;
-    $self->{key} = $self->{dbh}->selectcol_arrayref ("select key from ".$self->{tbl});
+    $self->{key} = $self->{dbh}->selectcol_arrayref ("select h_key from ".$self->{tbl});
     @{$self->{key}} or return;
     pop @{$self->{key}};
     } # FIRSTKEY
