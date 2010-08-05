@@ -13,18 +13,51 @@ Tie::Hash::DBD, tie a hash to a database table
 
 =head1 SYNOPSIS
 
-    use DBI;
-    use Tie::Hash::DBD;
+  use DBI;
+  use Tie::Hash::DBD;
 
-    my $dbh = DBI->connect ("dbi:Pg:", ...);
+  my $dbh = DBI->connect ("dbi:Pg:", ...);
 
-    tie my %hash, "Tie::Hash::DBD", $dbh;
-    tie my %hash, "Tie::Hash::DBD", $dbh, "foo";
+  tie my %hash, "Tie::Hash::DBD", $dbh;
+  tie my %hash, "Tie::Hash::DBD", $dbh, {
+      tbl => "t_tie_dbd_123_1", key => "h_key", fld => "h_value" };
 
-    $hash{key} = $value;  # INSERT
-    $hash{key} = 3;       # UPDATE
-    delete $hash{key};    # DELETE
-    $value = $hash{key};  # SELECT
+  $hash{key} = $value;  # INSERT
+  $hash{key} = 3;       # UPDATE
+  delete $hash{key};    # DELETE
+  $value = $hash{key};  # SELECT
+
+=head1 DESCRIPTION
+
+This module has been created to act as a drop-in replacement for modules
+that tie straight perl hashes to disk, like C<DB_File>. When the running
+system does not have enough memory to hold large hashes, and disk-tieing
+won't work because there is not enough space, it works quite well to tie
+the hash to a database, which preferable runs on a different server.
+
+This module ties a hash to a database table using B<only> a C<key> and a
+C<value> field. If no tables specification is passed, this will create a
+temporary table with C<h_key> for the key field and a C<h_value> for the
+value field.
+
+=head2 tie
+
+This module does not connect to the database itself, but expects an open
+database handle to be passed as first argument.
+
+If the second argument is a hashref, that should at least define a table
+name to be used.  Default key field is  C<h_key> and default value field
+is C<h_value>.
+
+=head1 Database
+
+Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
+DBD::Oracle, and DBD::Unify.
+
+DBD::Pg and DBD::SQLite have an unexpected great performance.
+
+The current implementation appears to be extremely slow for both CSV, as
+expected, and mysql. Patches welcome
 
 =head1 AUTHOR
 
@@ -54,8 +87,16 @@ my %DB = (
 	pbind	=> 1,
 	autoc	=> 0,
 	},
+    Unify	=> {	# Doesn't work: needs commit between create and use
+	temp	=> "",
+	t_key	=> "binary",
+	t_val	=> "binary",
+	clear	=> "truncate table",
+	pbind	=> 1,
+	autoc	=> 0,
+	},
     Oracle	=> {
-	temp	=> "temporary",	# Only as of Ora-10
+	temp	=> "global temporary",	# Only as of Ora-9
 	t_key	=> "blob",	# Does not allow binary to be primary key
 	t_val	=> "blob",
 	clear	=> "truncate table",
@@ -91,18 +132,32 @@ my %DB = (
 sub TIEHASH
 {
     my $pkg = shift;
-    my $dbh = shift or croak "No database handle passed";
+    my $usg = qq{usage: tie %h, "$pkg", \$dbh [, { tbl => "tbl", key => "f_key", fld => "f_value" }];};
+    my $dbh = shift or croak $usg;
     my $tbl = shift;
     my $dbt = $dbh->{Driver}{Name} || "no DBI handle";
     my $cnf = $DB{$dbt} or croak "I don't support database '$dbt'";
+    my $f_k = "h_key";
+    my $f_v = "h_value";
+    my $tmp = 0;
 
-    unless ($tbl) {
-	$tbl = "t_tie_dbd_$$" . "_" . ++$dbdx;
+    if ($tbl) {	# Use xisting table
+	ref $tbl eq "HASH" or croak $usg;
+
+	$tbl->{key} and $f_k = $tbl->{key};
+	$tbl->{fld} and $f_v = $tbl->{fld};
+
+	$tbl->{tbl} or croak $usg;
+	$tbl = $tbl->{tbl};
+	}
+    else {	# Create a temporary table
+	$tmp = ++$dbdx;
+	$tbl = "t_tie_dbd_$$" . "_$tmp";
 	local $dbh->{PrintWarn} = 0;
 	$dbh->do (
 	    "create $cnf->{temp} table $tbl (".
-		"h_key   $cnf->{t_key},".
-		"h_value $cnf->{t_val})");
+		"$f_k $cnf->{t_key},".
+		"$f_v $cnf->{t_val})");
 	}
 
     local $dbh->{AutoCommit} = $cnf->{autoc};
@@ -110,15 +165,18 @@ sub TIEHASH
 	dbt => $dbt,
 	dbh => $dbh,
 	tbl => $tbl,
+	f_k => $f_k,
+	f_v => $f_v,
+	tmp => $tmp,
 	ins => $dbh->prepare ("insert into $tbl values (?, ?)"),
-	del => $dbh->prepare ("delete from $tbl where h_key = ?"),
-	upd => $dbh->prepare ("update $tbl set h_value = ? where h_key = ?"),
-	sel => $dbh->prepare ("select h_value from $tbl where h_key = ?"),
+	del => $dbh->prepare ("delete from $tbl where $f_k = ?"),
+	upd => $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?"),
+	sel => $dbh->prepare ("select $f_v from $tbl where $f_k = ?"),
 	cnt => $dbh->prepare ("select count (*) from $tbl"),
-	ctv => $dbh->prepare ("select count (*) from $tbl where h_key = ?"),
+	ctv => $dbh->prepare ("select count (*) from $tbl where $f_k = ?"),
 	};
 
-    my $sth = $dbh->prepare ("select h_key, h_value from $tbl");
+    my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl");
     $sth->execute;
     my @typ = @{$sth->{TYPE}};
     if ($cnf->{pbind}) {
@@ -175,7 +233,7 @@ sub FETCH
 sub FIRSTKEY
 {
     my $self = shift;
-    $self->{key} = $self->{dbh}->selectcol_arrayref ("select h_key from ".$self->{tbl});
+    $self->{key} = $self->{dbh}->selectcol_arrayref ("select $self->{f_k} from $self->{tbl}");
     @{$self->{key}} or return;
     pop @{$self->{key}};
     } # FIRSTKEY
@@ -199,8 +257,7 @@ sub DESTROY
 {
     my $self = shift;
     $self->{$_}->finish for qw( sel ins upd del cnt ctv );
-    $self->{tbl} =~ m/^t_tie_dbd_[0-9]+_[0-9]+$/ and
-	$self->{dbh}->do ("drop table ".$self->{tbl});
+    $self->{tmp} and $self->{dbh}->do ("drop table ".$self->{tbl});
     } # DESTROY
 
 1;
