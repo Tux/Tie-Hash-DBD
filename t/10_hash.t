@@ -4,13 +4,13 @@ use strict;
 use warnings;
 
 use PROCURA::DBD;
-use Tie::DBD;
+use Tie::Hash::DBD;
 use Data::Peek;
 use Test::More;
 
 my $dbh = DBDlogon (1);
 
-tie my %hash, "Tie::DBD", $dbh;
+tie my %hash, "Tie::Hash::DBD", $dbh;
 
 ok (tied %hash,						"Hash tied");
 

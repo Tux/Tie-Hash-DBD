@@ -1,9 +1,10 @@
 Changes
 MANIFEST
 Makefile.PL
-lib/Tie/DBD.pm
+lib/Tie/Hash/DBD.pm
 README
 t/00_pod.t
 t/01_pod.t
 t/10_hash.t
+t/20_bulk.t
 examples/copy.pl
