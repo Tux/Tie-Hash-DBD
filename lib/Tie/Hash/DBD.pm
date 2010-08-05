@@ -1,6 +1,6 @@
 package Tie::Hash::DBD;
 
-our $VERSION = "0.02";
+our $VERSION = "0.03";
 
 use strict;
 use warnings;
@@ -61,6 +61,13 @@ is the local system.
 
 The current implementation appears to be extremely slow for both CSV, as
 expected, and mysql. Patches welcome
+
+=head1 PREREQUISITES
+
+The only real prerequisite is DBI but of course that uses the DBD driver
+of your choice. Some drivers are (very) actively maintained.  Be sure to
+to use recent Modules.  DBD::SQLite for example seems to require version
+1.29 or up.
 
 =head1 AUTHOR
 
