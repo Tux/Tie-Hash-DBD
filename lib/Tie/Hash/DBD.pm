@@ -78,6 +78,14 @@ my %DB = (
 	pbind	=> 0,
 	autoc	=> 0,
 	},
+    CSV		=> {
+	temp	=> "temporary",
+	t_key	=> "text primary key",
+	t_val	=> "text",
+	clear	=> "delete from",
+	pbind	=> 1,
+	autoc	=> 1,
+	},
     );
 
 sub TIEHASH
