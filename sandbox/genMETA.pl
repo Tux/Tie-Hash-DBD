@@ -12,7 +12,7 @@ GetOptions (
     ) or die "usage: $0 [--check]\n";
 
 my $version;
-open my $pm, "<", "lib/Tie/DBD.pm" or die "Cannot read Tie::DBD";
+open my $pm, "<", "lib/Tie/Hash/DBD.pm" or die "Cannot read Tie::DBD";
 while (<$pm>) {
     m/^our .VERSION\s*=\s*"?([-0-9._]+)"?\s*;\s*$/ or next;
     $version = $1;
@@ -61,7 +61,7 @@ else {
 
 __END__
 --- #YAML:1.0
-name:                    Tie::DBD
+name:                    Tie::Hash::DBD
 version:                 VERSION
 abstract:                Tie plain hashes to DBI interface
 license:                 perl
@@ -71,7 +71,7 @@ generated_by:            Author
 distribution_type:       module
 provides:
     Tie::DBD:
-        file:            lib/Tie/DBD.pm
+        file:            lib/Tie/Hash/DBD.pm
         version:         VERSION
 requires:     
     perl:                5.008
@@ -87,7 +87,7 @@ build_requires:
     Test::NoWarnings:    0
 resources:
     license:             http://dev.perl.org/licenses/
-    repository:          http://repo.or.cz/w/Tie-DBD.git
+    repository:          http://repo.or.cz/w/Tie-Hash-DBD.git
 meta-spec:
     version:             1.4
     url:                 http://module-build.sourceforge.net/META-spec-v1.4.html

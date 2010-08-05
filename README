@@ -1,11 +1,11 @@
 =head1 NAME
 
-Tie::DBD - tie a hash to a database
+Tie::Hash::DBD - tie a hash to a database
 
 =head1 SYNOPSIS
 
     use DBI;
-    use Tie::DBD;
+    use Tie::Hash::DBD;
 
     my $dbh = DBI->connect ("dbi:Pg:", ...);
 
@@ -19,7 +19,7 @@ Tie::DBD - tie a hash to a database
 
 =head1 DESCRIPTION
 
-See C<perldoc Tie::DBD>
+See C<perldoc Tie::Hash::DBD>
 
 =head1 BUGS & TODO
 

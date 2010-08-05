@@ -1,6 +1,6 @@
-package Tie::DBD;
+package Tie::Hash::DBD;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 use strict;
 use warnings;
@@ -9,17 +9,17 @@ use Carp;
 
 =head1 NAME
 
-Tie::DBD, tie a hash to a database table
+Tie::Hash::DBD, tie a hash to a database table
 
 =head1 SYNOPSIS
 
     use DBI;
-    use Tie::DBD;
+    use Tie::Hash::DBD;
 
     my $dbh = DBI->connect ("dbi:Pg:", ...);
 
-    tie my %hash, "Tie::DBD", $dbh;
-    tie my %hash, "Tie::DBD", $dbh, "foo";
+    tie my %hash, "Tie::Hash::DBD", $dbh;
+    tie my %hash, "Tie::Hash::DBD", $dbh, "foo";
 
     $hash{key} = $value;  # INSERT
     $hash{key} = 3;       # UPDATE
@@ -39,7 +39,7 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-DBI, Tie::Hash
+DBI, Tie::DBI, Tie::Hash
 
 =cut
 
