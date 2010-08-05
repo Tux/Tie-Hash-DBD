@@ -11,7 +11,6 @@ my @id = split m{/} => ($ENV{ORACLE_USERID} || "/");
 $ENV{DBI_USER} ||= $id[0];
 $ENV{DBI_PASS} ||= $id[1];
 
-use DP;DPeek ($ENV{$_}) for qw{ ORACLE_USERID DBI_USER DBI_PASS ORACLE_SID };
 exists $ENV{ORACLE_SID} && -d $ENV{ORACLE_HOME} &&
        $ENV{DBI_USER}   &&    $ENV{DBI_PASS} or
     plan skip_all => "Not a testable ORACLE env";
