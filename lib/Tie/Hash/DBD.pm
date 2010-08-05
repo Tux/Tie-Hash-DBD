@@ -45,27 +45,61 @@ DBI, Tie::DBI, Tie::Hash
 
 my $dbdx = 0;
 
+my %DB = (
+    Pg		=> {
+	temp	=> "temp",
+	t_key	=> "bytea primary key",
+	t_val	=> "bytea",
+	clear	=> "truncate table",
+	pbind	=> 1,
+	autoc	=> 0,
+	},
+    Oracle	=> {
+	temp	=> "temporary",	# Only as of Ora-10
+	t_key	=> "blob",	# Does not allow binary to be primary key
+	t_val	=> "blob",
+	clear	=> "truncate table",
+	pbind	=> 1,
+	autoc	=> 1,
+	},
+    mysql	=> {
+	temp	=> "temporary",
+	t_key	=> "blob",	# Does not allow binary to be primary key
+	t_val	=> "blob",
+	clear	=> "truncate table",
+	pbind	=> 1,
+	autoc	=> 1,
+	},
+    SQLite	=> {
+	temp	=> "temporary",
+	t_key	=> "text primary key",
+	t_val	=> "text",
+	clear	=> "delete from",
+	pbind	=> 0,
+	autoc	=> 0,
+	},
+    );
+
 sub TIEHASH
 {
     my $pkg = shift;
     my $dbh = shift or croak "No database handle passed";
     my $tbl = shift;
+    my $dbt = $dbh->{Driver}{Name} || "no DBI handle";
+    my $cnf = $DB{$dbt} or croak "I don't support database '$dbt'";
 
     unless ($tbl) {
 	$tbl = "t_tie_dbd_$$" . "_" . ++$dbdx;
-	my $type = {	# Oracle only support TEMP tables as of Ora-10
-	    Oracle	=> [ "temporary", "blob",              "blob"  ],
-	    Pg		=> [ "temp",      "bytea primary key", "bytea" ],
-	    mysql	=> [ "temporary", "blob",              "blob"  ],
-	    }->{$dbh->{Driver}{Name}} or croak "I don't support your database";
 	local $dbh->{PrintWarn} = 0;
 	$dbh->do (
-	    "create $type->[0] table $tbl (".
-		"h_key   $type->[1],".
-		"h_value $type->[2])");
+	    "create $cnf->{temp} table $tbl (".
+		"h_key   $cnf->{t_key},".
+		"h_value $cnf->{t_val})");
 	}
 
+    local $dbh->{AutoCommit} = $cnf->{autoc};
     my $h = {
+	dbt => $dbt,
 	dbh => $dbh,
 	tbl => $tbl,
 	ins => $dbh->prepare ("insert into $tbl values (?, ?)"),
@@ -79,13 +113,15 @@ sub TIEHASH
     my $sth = $dbh->prepare ("select h_key, h_value from $tbl");
     $sth->execute;
     my @typ = @{$sth->{TYPE}};
-    $h->{ins}->bind_param (1, undef, $typ[0]);
-    $h->{ins}->bind_param (2, undef, $typ[1]);
-    $h->{del}->bind_param (1, undef, $typ[0]);
-    $h->{upd}->bind_param (1, undef, $typ[1]);
-    $h->{upd}->bind_param (2, undef, $typ[0]);
-    $h->{sel}->bind_param (1, undef, $typ[0]);
-    $h->{ctv}->bind_param (1, undef, $typ[0]);
+    if ($cnf->{pbind}) {
+	$h->{ins}->bind_param (1, undef, $typ[0]);
+	$h->{ins}->bind_param (2, undef, $typ[1]);
+	$h->{del}->bind_param (1, undef, $typ[0]);
+	$h->{upd}->bind_param (1, undef, $typ[1]);
+	$h->{upd}->bind_param (2, undef, $typ[0]);
+	$h->{sel}->bind_param (1, undef, $typ[0]);
+	$h->{ctv}->bind_param (1, undef, $typ[0]);
+	}
 
     bless $h, $pkg;
     } # TIEHASH
@@ -110,7 +146,7 @@ sub DELETE
 sub CLEAR
 {
     my $self = shift;
-    $self->{dbh}->do ("truncate table " . $self->{tbl});
+    $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     } # CLEAR
 
 sub EXISTS
