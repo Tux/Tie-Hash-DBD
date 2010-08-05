@@ -12,4 +12,5 @@ t/30_Pg.t
 t/31_bulk.t
 t/40_CSV.t
 t/50_mysql.t
+t/60_Oracle.t
 examples/copy.pl

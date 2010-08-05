@@ -130,7 +130,6 @@ my %DB = (
 	t_val	=> "text",
 	clear	=> "delete from",
 	pbind	=> 1,
-	autoc	=> 1,
 	},
     );
 
@@ -155,7 +154,7 @@ sub TIEHASH
     my $f_v = "h_value";
     my $tmp = 0;
 
-    if ($tbl) {	# Use xisting table
+    if ($tbl) {	# Use existing table
 	ref $tbl eq "HASH" or croak $usg;
 
 	$tbl->{key} and $f_k = $tbl->{key};
@@ -171,10 +170,11 @@ sub TIEHASH
 	$dbh->do (
 	    "create $cnf->{temp} table $tbl (".
 		"$f_k $cnf->{t_key},".
-		"$f_v $cnf->{t_val})");
+		"$f_v $cnf->{t_val})"
+	    );
 	}
 
-    local $dbh->{AutoCommit} = $cnf->{autoc};
+    local $dbh->{AutoCommit} = $cnf->{autoc} if exists $cnf->{autoc};
     my $h = {
 	dbt => $dbt,
 	dbh => $dbh,
