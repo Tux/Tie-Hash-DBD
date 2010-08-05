@@ -35,6 +35,8 @@ system does not have enough memory to hold large hashes, and disk-tieing
 won't work because there is not enough space, it works quite well to tie
 the hash to a database, which preferable runs on a different server.
 
+The C<$dbh> argument can also be a fully qualified DSN.
+
 This module ties a hash to a database table using B<only> a C<key> and a
 C<value> field. If no tables specification is passed, this will create a
 temporary table with C<h_key> for the key field and a C<h_value> for the
@@ -54,7 +56,8 @@ is C<h_value>.
 Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
 DBD::Oracle, and DBD::Unify.
 
-DBD::Pg and DBD::SQLite have an unexpected great performance.
+DBD::Pg and DBD::SQLite have an unexpected great performance when server
+is the local system.
 
 The current implementation appears to be extremely slow for both CSV, as
 expected, and mysql. Patches welcome
@@ -75,6 +78,8 @@ it under the same terms as Perl itself.
 DBI, Tie::DBI, Tie::Hash
 
 =cut
+
+use DBI;
 
 my $dbdx = 0;
 
@@ -135,6 +140,15 @@ sub TIEHASH
     my $usg = qq{usage: tie %h, "$pkg", \$dbh [, { tbl => "tbl", key => "f_key", fld => "f_value" }];};
     my $dbh = shift or croak $usg;
     my $tbl = shift;
+
+    ref $dbh or
+	$dbh = DBI->connect ($dbh, undef, undef, {
+	    PrintError       => 1,
+	    RaiseError       => 1,
+	    PrintWarn        => 1,
+	    FetchHashKeyName => "NAME_lc",
+	    }) || croak DBI->errstr;
+
     my $dbt = $dbh->{Driver}{Name} || "no DBI handle";
     my $cnf = $DB{$dbt} or croak "I don't support database '$dbt'";
     my $f_k = "h_key";

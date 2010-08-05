@@ -15,8 +15,8 @@ my %wm = (
     VERSION_FROM => "lib/Tie/Hash/DBD.pm",
     PREREQ_PM	 => {
 	"Carp"			=> 0,
-	"Test::More"		=> 0,
-	"Test::NoWarnings"	=> 0,
+	"Test::More"		=> 0.90,
+	"DBI"			=> 1.613,
 	},
     );
 

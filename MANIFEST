@@ -5,6 +5,11 @@ lib/Tie/Hash/DBD.pm
 README
 t/00_pod.t
 t/01_pod.t
-t/10_hash.t
-t/20_bulk.t
+t/10_load.t
+t/20_SQLite.t
+t/21_bulk.t
+t/30_Pg.t
+t/31_bulk.t
+t/40_CSV.t
+t/50_mysql.t
 examples/copy.pl

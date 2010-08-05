@@ -76,6 +76,7 @@ provides:
 requires:     
     perl:                5.008
     Carp:                0
+    DBI:                 1.163
 recommends:     
     perl:                5.012001
 configure_requires:
@@ -83,8 +84,7 @@ configure_requires:
 build_requires:
     perl:                5.008
     Test::Harness:       0
-    Test::More:          0
-    Test::NoWarnings:    0
+    Test::More:          0.90
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          http://repo.or.cz/w/Tie-Hash-DBD.git
