@@ -11,7 +11,7 @@ my @id = split m{/} => ($ENV{ORACLE_USERID} || "/");
 $ENV{DBI_USER} ||= $id[0];
 $ENV{DBI_PASS} ||= $id[1];
 
--d $ENV{ORACLE_HOME} && ($ENV{ORACLE_SID} || $ENV{TWO_TASK}) &&
+($ENV{ORACLE_SID} || $ENV{TWO_TASK}) && -d ($ENV{ORACLE_HOME} || "/-..\x03") &&
    $ENV{DBI_USER}    &&  $ENV{DBI_PASS} or
     plan skip_all => "Not a testable ORACLE env";
 
