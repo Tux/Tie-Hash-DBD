@@ -253,19 +253,19 @@ C<value> field. If no tables specification is passed, this will create a
 temporary table with C<h_key> for the key field and a C<h_value> for the
 value field.
 
-=head2 tie
+=head1 tie
 
-This module does not connect to the database itself, but expects an open
-database handle to be passed as first argument (if the first argument is
-a database handle).
+The tie call accepts two arguments:
+
+=head2 Database
+
+The first argument is the connection specifier.  This is either and open
+database handle or a C<DBI_DSN> string.
+
+If this argument is a valid handle, this module does not open a database
+all by itself, but uses the connection provided in the handle.
 
 If the first argument is a scalar, it is used as DSN for DBI->connect ().
-
-If the second argument is a hashref, that should at least define a table
-name to be used.  Default key field is  C<h_key> and default value field
-is C<h_value>.
-
-=head1 Database
 
 Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
 DBD::Oracle, and DBD::Unify.
@@ -275,6 +275,42 @@ is the local system.
 
 The current implementation appears to be extremely slow for both CSV, as
 expected, and mysql. Patches welcome
+
+=head2 Options
+
+The second argument is optional and should - if passed - be a hashref to
+options. The following options are recognized:
+
+=over 2
+
+=item tbl
+
+Defines the name of the table to be used. If none is passed, a new table
+is created with a unique name like C<t_tie_dbd_422531_1>. When possible,
+the table is created as I<temporary>. After the session, this table will
+be dropped.
+
+If a table name is provided, it will be checked for existence. If found,
+it will be used with the specified C<key> and C<fld>.  Otherwise it will
+be created with C<key> and <fld>,  but it will not be dropped at the end
+of the session.
+
+=item key
+
+Defines the name of the key field in the database table.  The default is
+C<h_key>.
+
+=item fld
+
+Defines the name of the value field in the database table.   The default
+is C<h_value>.
+
+=item str
+
+Defines the required persistence module. Currently only supports the use
+of C<Storable>. The default is undefined.
+
+=back
 
 =head1 PREREQUISITES
 
