@@ -3,6 +3,7 @@ Revision history for Tie::DBD
 0.03	06 Aug 2010 - H.Merijn Brand
 
     - Documentation
+    - Make Oracle work (with restrictions)
 
 0.02	05 Aug 2010 - H.Merijn Brand
 
