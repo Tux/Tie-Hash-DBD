@@ -21,7 +21,11 @@ Tie::Hash::DBD, tie a plain hash to a database table
   tie my %hash, "Tie::Hash::DBD", "dbi:SQLite:dbname=db.tie";
   tie my %hash, "Tie::Hash::DBD", $dbh;
   tie my %hash, "Tie::Hash::DBD", $dbh, {
-      tbl => "t_tie_dbd_123_1", key => "h_key", fld => "h_value" };
+      tbl => "t_tie_analysis",
+      key => "h_key",
+      fld => "h_value",
+      str => "Storable,
+      };
 
   $hash{key} = $value;  # INSERT
   $hash{key} = 3;       # UPDATE
@@ -31,6 +35,7 @@ Tie::Hash::DBD, tie a plain hash to a database table
 =cut
 
 use DBI;
+use Storable;
 
 my $dbdx = 0;
 
@@ -103,7 +108,7 @@ sub TIEHASH
     my $pkg = shift;
     my $usg = qq{usage: tie %h, "$pkg", \$dbh [, { tbl => "tbl", key => "f_key", fld => "f_value" }];};
     my $dbh = shift or croak $usg;
-    my $tbl = shift;
+    my $opt = shift;
 
     ref $dbh or
 	$dbh = DBI->connect ($dbh, undef, undef, {
@@ -122,26 +127,30 @@ sub TIEHASH
     my $h = {
 	dbt => $dbt,
 	dbh => $dbh,
-	tbl => $tbl,
-	f_k => $f_k,
-	f_v => $f_v,
+	tbl => undef,
 	tmp => $tmp,
+	str => undef,
 	};
 
-    if ($tbl) {	# Use existing table
-	ref $tbl eq "HASH" or croak $usg;
+    if ($opt) {
+	ref $opt eq "HASH" or croak $usg;
 
-	$tbl->{key} and $f_k = $tbl->{key};
-	$tbl->{fld} and $f_v = $tbl->{fld};
-
-	$tbl->{tbl} or croak $usg;
-	$tbl = $tbl->{tbl};
+	$opt->{key} and $f_k      = $opt->{key};
+	$opt->{fld} and $f_v      = $opt->{fld};
+	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
+	$opt->{str} and $h->{str} = $opt->{str};
 	}
-    else {	# Create a temporary table
+
+    $h->{f_k} = $f_k;
+    $h->{f_v} = $f_v;
+
+    unless ($h->{tbl}) {	# Create a temporary table
 	$tmp = ++$dbdx;
-	$tbl = $h->{tbl} = "t_tie_dbd_$$" . "_$tmp";
+	$h->{tbl} = "t_tie_dbd_$$" . "_$tmp";
 	_create_table ($h, $tmp);
 	}
+
+    my $tbl = $h->{tbl};
 
     local $dbh->{AutoCommit} = $cnf->{autoc} if exists $cnf->{autoc};
     $h->{ins} = $dbh->prepare ("insert into $tbl values (?, ?)");
