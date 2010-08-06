@@ -9,7 +9,7 @@ use Carp;
 
 =head1 NAME
 
-Tie::Hash::DBD, tie a hash to a database table
+Tie::Hash::DBD, tie a plain hash to a database table
 
 =head1 SYNOPSIS
 
@@ -18,6 +18,7 @@ Tie::Hash::DBD, tie a hash to a database table
 
   my $dbh = DBI->connect ("dbi:Pg:", ...);
 
+  tie my %hash, "Tie::Hash::DBD", "dbi:SQLite:dbname=db.tie";
   tie my %hash, "Tie::Hash::DBD", $dbh;
   tie my %hash, "Tie::Hash::DBD", $dbh, {
       tbl => "t_tie_dbd_123_1", key => "h_key", fld => "h_value" };
@@ -26,63 +27,6 @@ Tie::Hash::DBD, tie a hash to a database table
   $hash{key} = 3;       # UPDATE
   delete $hash{key};    # DELETE
   $value = $hash{key};  # SELECT
-
-=head1 DESCRIPTION
-
-This module has been created to act as a drop-in replacement for modules
-that tie straight perl hashes to disk, like C<DB_File>. When the running
-system does not have enough memory to hold large hashes, and disk-tieing
-won't work because there is not enough space, it works quite well to tie
-the hash to a database, which preferable runs on a different server.
-
-The C<$dbh> argument can also be a fully qualified DSN.
-
-This module ties a hash to a database table using B<only> a C<key> and a
-C<value> field. If no tables specification is passed, this will create a
-temporary table with C<h_key> for the key field and a C<h_value> for the
-value field.
-
-=head2 tie
-
-This module does not connect to the database itself, but expects an open
-database handle to be passed as first argument.
-
-If the second argument is a hashref, that should at least define a table
-name to be used.  Default key field is  C<h_key> and default value field
-is C<h_value>.
-
-=head1 Database
-
-Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
-DBD::Oracle, and DBD::Unify.
-
-DBD::Pg and DBD::SQLite have an unexpected great performance when server
-is the local system.
-
-The current implementation appears to be extremely slow for both CSV, as
-expected, and mysql. Patches welcome
-
-=head1 PREREQUISITES
-
-The only real prerequisite is DBI but of course that uses the DBD driver
-of your choice. Some drivers are (very) actively maintained.  Be sure to
-to use recent Modules.  DBD::SQLite for example seems to require version
-1.29 or up.
-
-=head1 AUTHOR
-
-H.Merijn Brand <h.m.brand@xs4all.nl>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (C) 2010-2010 H.Merijn Brand
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
-
-=head1 SEE ALSO
-
-DBI, Tie::DBI, Tie::Hash
 
 =cut
 
@@ -282,3 +226,95 @@ sub DESTROY
     } # DESTROY
 
 1;
+
+__END__
+
+=head1 DESCRIPTION
+
+This module has been created to act as a drop-in replacement for modules
+that tie straight perl hashes to disk, like C<DB_File>. When the running
+system does not have enough memory to hold large hashes, and disk-tieing
+won't work because there is not enough space, it works quite well to tie
+the hash to a database, which preferable runs on a different server.
+
+This module ties a hash to a database table using B<only> a C<key> and a
+C<value> field. If no tables specification is passed, this will create a
+temporary table with C<h_key> for the key field and a C<h_value> for the
+value field.
+
+=head2 tie
+
+This module does not connect to the database itself, but expects an open
+database handle to be passed as first argument (if the first argument is
+a database handle).
+
+If the first argument is a scalar, it is used as DSN for DBI->connect ().
+
+If the second argument is a hashref, that should at least define a table
+name to be used.  Default key field is  C<h_key> and default value field
+is C<h_value>.
+
+=head1 Database
+
+Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
+DBD::Oracle, and DBD::Unify.
+
+DBD::Pg and DBD::SQLite have an unexpected great performance when server
+is the local system.
+
+The current implementation appears to be extremely slow for both CSV, as
+expected, and mysql. Patches welcome
+
+=head1 PREREQUISITES
+
+The only real prerequisite is DBI but of course that uses the DBD driver
+of your choice. Some drivers are (very) actively maintained.  Be sure to
+to use recent Modules.  DBD::SQLite for example seems to require version
+1.29 or up.
+
+=head1 Restrictions
+
+This module does not preserve magic on data.
+
+=head1 TODO
+
+=over 2
+
+=item Documentation
+
+Better document what the implications are of storing  I<data> content in
+a database and restoring that. It will not be fool proof.
+
+=item Preserve encoding
+
+Currently data is stored as binary.  I'm convinced that any encoding and
+magic is lost. Restoring encoding would be great.
+
+=item Feature streaming
+
+Implement features that would enable nested data structures by streaming
+using standard perl tools like Data::Dumper, Storable, or FreezeThaw.
+
+=item Mixins
+
+Maybe: implement a feature that would enable plugins or mixins to do the
+streaming or preservation of other data attributes.
+
+=back
+
+=head1 AUTHOR
+
+H.Merijn Brand <h.m.brand@xs4all.nl>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010-2010 H.Merijn Brand
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
+
+=head1 SEE ALSO
+
+DBI, Tie::DBI, Tie::Hash
+
+=cut
