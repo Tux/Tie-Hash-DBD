@@ -84,6 +84,20 @@ my %DB = (
 	},
     );
 
+sub _create_table
+{
+    my ($cnf, $tmp) = shift;
+    $cnf->{tmp} = $tmp;
+    local $cnf->{dbh}->{PrintWarn} = 0;
+    my ($temp, $t_key, $t_val) = @{$DB{$cnf->{dbt}}}{qw( temp t_key t_val )};
+    $tmp or $temp = "";
+    $cnf->{dbh}->do (
+	"create $temp table $cnf->{tbl} (".
+	    "$cnf->{f_k} $t_key,".
+	    "$cnf->{f_v} $t_val)"
+	);
+    } # create table
+
 sub TIEHASH
 {
     my $pkg = shift;
@@ -105,6 +119,15 @@ sub TIEHASH
     my $f_v = "h_value";
     my $tmp = 0;
 
+    my $h = {
+	dbt => $dbt,
+	dbh => $dbh,
+	tbl => $tbl,
+	f_k => $f_k,
+	f_v => $f_v,
+	tmp => $tmp,
+	};
+
     if ($tbl) {	# Use existing table
 	ref $tbl eq "HASH" or croak $usg;
 
@@ -116,35 +139,23 @@ sub TIEHASH
 	}
     else {	# Create a temporary table
 	$tmp = ++$dbdx;
-	$tbl = "t_tie_dbd_$$" . "_$tmp";
-	local $dbh->{PrintWarn} = 0;
-	$dbh->do (
-	    "create $cnf->{temp} table $tbl (".
-		"$f_k $cnf->{t_key},".
-		"$f_v $cnf->{t_val})"
-	    );
+	$tbl = $h->{tbl} = "t_tie_dbd_$$" . "_$tmp";
+	_create_table ($h, $tmp);
 	}
 
     local $dbh->{AutoCommit} = $cnf->{autoc} if exists $cnf->{autoc};
-    my $h = {
-	dbt => $dbt,
-	dbh => $dbh,
-	tbl => $tbl,
-	f_k => $f_k,
-	f_v => $f_v,
-	tmp => $tmp,
-	ins => $dbh->prepare ("insert into $tbl values (?, ?)"),
-	del => $dbh->prepare ("delete from $tbl where $f_k = ?"),
-	upd => $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?"),
-	sel => $dbh->prepare ("select $f_v from $tbl where $f_k = ?"),
-	cnt => $dbh->prepare ("select count (*) from $tbl"),
-	ctv => $dbh->prepare ("select count (*) from $tbl where $f_k = ?"),
-	};
+    $h->{ins} = $dbh->prepare ("insert into $tbl values (?, ?)");
+    $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
+    $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?");
+    $h->{sel} = $dbh->prepare ("select $f_v from $tbl where $f_k = ?");
+    $h->{cnt} = $dbh->prepare ("select count(*) from $tbl");
+    $h->{ctv} = $dbh->prepare ("select count(*) from $tbl where $f_k = ?");
 
-    my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl");
-    $sth->execute;
-    my @typ = @{$sth->{TYPE}};
     if ($cnf->{pbind}) {
+	my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl");
+	$sth->execute;
+	my @typ = @{$sth->{TYPE}};
+
 	$h->{ins}->bind_param (1, undef, $typ[0]);
 	$h->{ins}->bind_param (2, undef, $typ[1]);
 	$h->{del}->bind_param (1, undef, $typ[0]);
