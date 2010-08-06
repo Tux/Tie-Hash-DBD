@@ -45,7 +45,6 @@ my %DB = (
 	t_key	=> "bytea primary key",
 	t_val	=> "bytea",
 	clear	=> "truncate table",
-	pbind	=> 1,
 	autoc	=> 0,
 	},
     Unify	=> {	# Doesn't work: needs commit between create and use
@@ -53,23 +52,23 @@ my %DB = (
 	t_key	=> "binary",
 	t_val	=> "binary",
 	clear	=> "truncate table",
-	pbind	=> 1,
 	autoc	=> 0,
 	},
     Oracle	=> {
+	# Oracle does not allow where clauses on BLOB's nor does it allow
+	# BLOB's to be primary keys
 	temp	=> "global temporary",	# Only as of Ora-9
-	t_key	=> "blob",	# Does not allow binary to be primary key
+	t_key	=> "varchar2 (4000) primary key",
 	t_val	=> "blob",
 	clear	=> "truncate table",
-	pbind	=> 1,
 	autoc	=> 1,
+	k_asc	=> 1,		# Does not allow where on BLOB
 	},
     mysql	=> {
 	temp	=> "temporary",
 	t_key	=> "blob",	# Does not allow binary to be primary key
 	t_val	=> "blob",
 	clear	=> "truncate table",
-	pbind	=> 1,
 	autoc	=> 1,
 	},
     SQLite	=> {
@@ -77,7 +76,7 @@ my %DB = (
 	t_key	=> "text primary key",
 	t_val	=> "text",
 	clear	=> "delete from",
-	pbind	=> 0,
+	pbind	=> 0, # TYPEs in SQLite are text, bind_param () needs int
 	autoc	=> 0,
 	},
     CSV		=> {
@@ -85,7 +84,6 @@ my %DB = (
 	t_key	=> "text primary key",
 	t_val	=> "text",
 	clear	=> "delete from",
-	pbind	=> 1,
 	},
     );
 
@@ -130,6 +128,7 @@ sub TIEHASH
 	tbl => undef,
 	tmp => $tmp,
 	str => undef,
+	asc => $cnf->{k_asc} || 0,
 	};
 
     if ($opt) {
@@ -153,6 +152,7 @@ sub TIEHASH
     my $tbl = $h->{tbl};
 
     local $dbh->{AutoCommit} = $cnf->{autoc} if exists $cnf->{autoc};
+
     $h->{ins} = $dbh->prepare ("insert into $tbl values (?, ?)");
     $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
     $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?");
@@ -160,7 +160,7 @@ sub TIEHASH
     $h->{cnt} = $dbh->prepare ("select count(*) from $tbl");
     $h->{ctv} = $dbh->prepare ("select count(*) from $tbl where $f_k = ?");
 
-    if ($cnf->{pbind}) {
+    unless (exists $cnf->{pbind} && !$cnf->{pbind}) {
 	my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl");
 	$sth->execute;
 	my @typ = @{$sth->{TYPE}};
@@ -180,14 +180,16 @@ sub TIEHASH
 sub STORE
 {
     my ($self, $key, $value) = @_;
+    my $k = $self->{asc} ? unpack "H*", $key : $key;
     $self->EXISTS ($key)
-	? $self->{upd}->execute ($value, $key)
-	: $self->{ins}->execute ($key, $value);
+	? $self->{upd}->execute ($value, $k)
+	: $self->{ins}->execute ($k, $value);
     } # STORE
 
 sub DELETE
 {
     my ($self, $key) = @_;
+    $self->{asc} and $key = unpack "H*", $key;
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
     $self->{del}->execute ($key);
@@ -203,6 +205,7 @@ sub CLEAR
 sub EXISTS
 {
     my ($self, $key) = @_;
+    $self->{asc} and $key = unpack "H*", $key;
     $self->{sel}->execute ($key);
     return $self->{sel}->fetch ? 1 : 0;
     } # EXISTS
@@ -210,6 +213,7 @@ sub EXISTS
 sub FETCH
 {
     my ($self, $key) = @_;
+    $self->{asc} and $key = unpack "H*", $key;
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
     $r->[0];
@@ -220,6 +224,9 @@ sub FIRSTKEY
     my $self = shift;
     $self->{key} = $self->{dbh}->selectcol_arrayref ("select $self->{f_k} from $self->{tbl}");
     @{$self->{key}} or return;
+    if ($self->{asc}) {
+	 $_ = pack "H*", $_ for @{$self->{key}};
+	 }
     pop @{$self->{key}};
     } # FIRSTKEY
 
@@ -328,9 +335,23 @@ of your choice. Some drivers are (very) actively maintained.  Be sure to
 to use recent Modules.  DBD::SQLite for example seems to require version
 1.29 or up.
 
-=head1 Restrictions
+=head1 RESTRICTIONS and LIMITATIONS
+
+=over 2
+
+=item *
+
+As Oracle does not allow BLOB, CLOB or LONG to be indexed or selected on,
+the keys will be converted to ASCII for Oracle. The maximum length for a
+converted key in Oracle is 4000 characters. The fact that the key has to
+be converted to ASCII representation,  also excludes C<undef> as a valid
+key value.
+
+=item *
 
 This module does not preserve magic on data.
+
+=back
 
 =head1 TODO
 

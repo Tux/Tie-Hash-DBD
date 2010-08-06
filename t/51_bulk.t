@@ -6,8 +6,6 @@ use warnings;
 use Test::More;
 use Tie::Hash::DBD;
 
-plan skip_all => "Currently too slow to test";
-
 my %hash;
 eval {
     my $db = $ENV{MYSQLDB} || $ENV{LOGNAME} || scalar getpwuid $<;
@@ -23,10 +21,16 @@ unless (tied %hash) {
 
 ok (tied %hash,			"Hash tied");
 
-my %plain = map { ( $_ => $_ ) } map { ( $_, pack "l", $_ ) } -10000 .. 10000;
+foreach my $size (10, 100) {
+    my %plain = map { ( $_ => $_ ) }
+		map { ( $_, pack "l", $_ ) }
+		-($size - 1) .. $size;
 
-ok (%hash = %plain,		"Assign big hash");
-is_deeply (\%hash, \%plain,	"Content");
+    my $s_size = 2 * $size;
+
+    ok (%hash = %plain,		"Assign hash $s_size elements");
+    is_deeply (\%hash, \%plain,	"Content $s_size");
+    }
 
 untie %hash;
 

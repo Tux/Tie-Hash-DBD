@@ -11,11 +11,9 @@ my @id = split m{/} => ($ENV{ORACLE_USERID} || "/");
 $ENV{DBI_USER} ||= $id[0];
 $ENV{DBI_PASS} ||= $id[1];
 
-exists $ENV{ORACLE_SID} && -d $ENV{ORACLE_HOME} &&
-       $ENV{DBI_USER}   &&    $ENV{DBI_PASS} or
+-d $ENV{ORACLE_HOME} && ($ENV{ORACLE_SID} || $ENV{TWO_TASK}) &&
+   $ENV{DBI_USER}    &&  $ENV{DBI_PASS} or
     plan skip_all => "Not a testable ORACLE env";
-
-plan skip_all => "DBD::Oracle doesn't seem to be able to prepare selects with BLOB as key";
 
 eval { tie %hash, "Tie::Hash::DBD", "dbi:Oracle:" };
 
