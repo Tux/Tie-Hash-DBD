@@ -34,7 +34,7 @@ my %DB = (
 	t_key	=> "varchar2 (4000) primary key",
 	t_val	=> "blob",
 	clear	=> "truncate table",
-	autoc	=> 1,
+	autoc	=> 0,
 	k_asc	=> 1,		# Does not allow where on BLOB
 	},
     mysql	=> {
