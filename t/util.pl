@@ -18,9 +18,9 @@ sub dsn
 
 	($ENV{ORACLE_SID} || $ENV{TWO_TASK}) &&
 	-d ($ENV{ORACLE_HOME} || "/-..\x03") &&
-	   $ENV{DBI_USER}    &&  $ENV{DBI_PASS} or
+	   $ENV{DBI_USER} && $ENV{DBI_PASS} or
 	    plan skip_all => "Not a testable ORACLE env";
-	return "dbi::Oracle:";
+	return "dbi:Oracle:";
 	}
 
     if ($type eq "mysql") {
