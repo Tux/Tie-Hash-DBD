@@ -1,4 +1,5 @@
-personal_ws-1.1 en 11 
+personal_ws-1.1 en 12 
+CLOB
 DBD
 DBI
 DSN

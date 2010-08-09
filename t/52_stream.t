@@ -7,17 +7,20 @@ use Test::More;
 use Tie::Hash::DBD;
 
 my %hash;
-unlink $_ for glob "t_tie_dbd_*.csv";
-eval { tie %hash, "Tie::Hash::DBD", "dbi:CSV:f_ext=.csv/r" };
+
+eval {
+    my $db = $ENV{MYSQLDB} || $ENV{LOGNAME} || scalar getpwuid $<;
+    tie %hash, "Tie::Hash::DBD", "dbi:mysql:database=$db", { str => "Storable" };
+    };
 
 unless (tied %hash) {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     $reason and substr $reason, 0, 0, " - ";
-    plan skip_all => "Cannot tie using DBD::CSV$reason";
+    plan skip_all => "Cannot tie using DBD::mysql$reason";
     }
 
-ok (tied %hash,						"Hash tied");
+ok (tied %hash,			"Hash tied");
 
 # insert
 ok ($hash{c1} = 1,					"c1 = 1");
@@ -51,12 +54,34 @@ ok ($hash{c4} = $anr,					"Binary value");
 ok ($hash{$anr} = 42,					"Binary key");
 ok ($hash{$anr} = $anr,					"Binary key and value");
 
+my %deep = (
+    UND => undef,
+    IV  => 1,
+    NV  => 3.14159265358979,
+    PV  => "string",
+    PV8 => "ab\ncd\x{20ac}\t",
+    PVM => $!,
+    RV  => \$.,
+    AR  => [ 1..2 ],
+    HR  => { key => "value" },
+    OBJ => ( bless { auto_diag => 1 }, "Text::CSV_XS" ),
+    # These are not handled by Storable:
+#   CR  => sub { "code"; },
+#   GLB => *STDERR,
+#   IO  => *{$::{STDERR}}{IO},
+#   RX  => qr{^re[gG]e?x},
+#   FMT => *{$::{STDOUT}}{FORMAT},
+    );
+
+ok ($hash{deep} = { %deep },				"Deep structure");
+
+is_deeply ($hash{deep}, \%deep,				"Content");
+
 # clear
 %hash = ();
-$SQL::Statement::VERSION =~ m/^1.(28|29|30)$/ or
-    is_deeply (\%hash, {},				"Clear");
+is_deeply (\%hash, {},					"Clear");
 
 untie %hash;
-unlink $_ for glob "t_tie_dbd_*.csv";
+unlink "db.3";
 
 done_testing;

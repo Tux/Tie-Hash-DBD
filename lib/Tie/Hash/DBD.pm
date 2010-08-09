@@ -7,35 +7,8 @@ use warnings;
 
 use Carp;
 
-=head1 NAME
-
-Tie::Hash::DBD, tie a plain hash to a database table
-
-=head1 SYNOPSIS
-
-  use DBI;
-  use Tie::Hash::DBD;
-
-  my $dbh = DBI->connect ("dbi:Pg:", ...);
-
-  tie my %hash, "Tie::Hash::DBD", "dbi:SQLite:dbname=db.tie";
-  tie my %hash, "Tie::Hash::DBD", $dbh;
-  tie my %hash, "Tie::Hash::DBD", $dbh, {
-      tbl => "t_tie_analysis",
-      key => "h_key",
-      fld => "h_value",
-      str => "Storable,
-      };
-
-  $hash{key} = $value;  # INSERT
-  $hash{key} = 3;       # UPDATE
-  delete $hash{key};    # DELETE
-  $value = $hash{key};  # SELECT
-
-=cut
-
 use DBI;
-use Storable;
+use Storable qw( freeze thaw );
 
 my $dbdx = 0;
 
@@ -177,13 +150,32 @@ sub TIEHASH
     bless $h, $pkg;
     } # TIEHASH
 
+sub _stream
+{
+    my ($self, $val) = @_;
+    defined $val or return undef;
+    $self->{str} or return $val;
+
+    $self->{str} eq "Storable" and return freeze ({ val => $val });
+    } # _stream
+
+sub _unstream
+{
+    my ($self, $val) = @_;
+    defined $val or return undef;
+    $self->{str} or return $val;
+
+    $self->{str} eq "Storable" and return thaw ($val)->{val};
+    } # _unstream
+
 sub STORE
 {
     my ($self, $key, $value) = @_;
     my $k = $self->{asc} ? unpack "H*", $key : $key;
+    my $v = $self->_stream ($value);
     $self->EXISTS ($key)
-	? $self->{upd}->execute ($value, $k)
-	: $self->{ins}->execute ($k, $value);
+	? $self->{upd}->execute ($v, $k)
+	: $self->{ins}->execute ($k, $v);
     } # STORE
 
 sub DELETE
@@ -193,7 +185,7 @@ sub DELETE
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
     $self->{del}->execute ($key);
-    $r->[0];
+    $self->_unstream ($r->[0]);
     } # DELETE
 
 sub CLEAR
@@ -216,7 +208,7 @@ sub FETCH
     $self->{asc} and $key = unpack "H*", $key;
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
-    $r->[0];
+    $self->_unstream ($r->[0]);
     } # STORE
 
 sub FIRSTKEY
@@ -255,6 +247,31 @@ sub DESTROY
 1;
 
 __END__
+
+=head1 NAME
+
+Tie::Hash::DBD, tie a plain hash to a database table
+
+=head1 SYNOPSIS
+
+  use DBI;
+  use Tie::Hash::DBD;
+
+  my $dbh = DBI->connect ("dbi:Pg:", ...);
+
+  tie my %hash, "Tie::Hash::DBD", "dbi:SQLite:dbname=db.tie";
+  tie my %hash, "Tie::Hash::DBD", $dbh;
+  tie my %hash, "Tie::Hash::DBD", $dbh, {
+      tbl => "t_tie_analysis",
+      key => "h_key",
+      fld => "h_value",
+      str => "Storable,
+      };
+
+  $hash{key} = $value;  # INSERT
+  $hash{key} = 3;       # UPDATE
+  delete $hash{key};    # DELETE
+  $value = $hash{key};  # SELECT
 
 =head1 DESCRIPTION
 
@@ -326,6 +343,12 @@ is C<h_value>.
 Defines the required persistence module. Currently only supports the use
 of C<Storable>. The default is undefined.
 
+Note that C<Storable> does not support persistence of perl types C<CODE>, 
+C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
+
+If you want to preserve Encoding on the hash values, you should use this
+feature.
+
 =back
 
 =head1 PREREQUISITES
@@ -361,16 +384,6 @@ This module does not preserve magic on data.
 
 Better document what the implications are of storing  I<data> content in
 a database and restoring that. It will not be fool proof.
-
-=item Preserve encoding
-
-Currently data is stored as binary.  I'm convinced that any encoding and
-magic is lost. Restoring encoding would be great.
-
-=item Feature streaming
-
-Implement features that would enable nested data structures by streaming
-using standard perl tools like Data::Dumper, Storable, or FreezeThaw.
 
 =item Mixins
 
