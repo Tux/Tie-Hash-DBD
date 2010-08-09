@@ -17,6 +17,7 @@ my %wm = (
 	"Carp"			=> 0,
 	"Test::More"		=> 0.90,
 	"DBI"			=> 1.613,
+	"Storable"		=> 0,
 	},
     );
 

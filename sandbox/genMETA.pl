@@ -77,6 +77,7 @@ requires:
     perl:                5.008
     Carp:                0
     DBI:                 1.163
+    Storable:            0
 recommends:     
     perl:                5.012001
 configure_requires:
