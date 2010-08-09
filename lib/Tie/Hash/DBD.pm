@@ -1,6 +1,6 @@
 package Tie::Hash::DBD;
 
-our $VERSION = "0.04";
+our $VERSION = "0.05";
 
 use strict;
 use warnings;
@@ -18,7 +18,7 @@ my %DB = (
 	t_key	=> "bytea primary key",
 	t_val	=> "bytea",
 	clear	=> "truncate table",
-	autoc	=> 1,
+	autoc	=> 0,
 	},
     Unify	=> {	# Doesn't work: needs commit between create and use
 	temp	=> "",
@@ -79,6 +79,7 @@ sub _create_table
 
     my ($temp, $t_key, $t_val) = @{$DB{$cnf->{dbt}}}{qw( temp t_key t_val )};
     $cnf->{tmp} or $temp = "";
+    local $dbh->{AutoCommit} = 1 unless $cnf->{dbt} eq "CSV";
     $dbh->do (
 	"create $temp table $cnf->{tbl} (".
 	    "$cnf->{f_k} $t_key,".
@@ -263,9 +264,11 @@ sub DESTROY
     my $self = shift;
     $self->{$_}->finish for qw( sel ins upd del cnt ctv );
     if ($self->{tmp}) {
-	$self->{dbh}->do ("drop table ".$self->{tbl});
 	$self->{dbh}{AutoCommit} || $DB{$self->{dbt}}{autoc} or
 	    $self->{dbh}->rollback;
+	$self->{dbh}->do ("drop table ".$self->{tbl});
+	$self->{dbh}{AutoCommit} or
+	    $self->{dbh}->commit;
 	}
     else {
 	$self->{dbh}{AutoCommit} || $DB{$self->{dbt}}{autoc} or

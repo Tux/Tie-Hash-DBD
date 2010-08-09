@@ -1,5 +1,9 @@
 Revision history for Tie::DBD
 
+0.05	09 Aug 2010 - H.Merijn Brand
+
+    - More speed
+
 0.04	09 Aug 2010 - H.Merijn Brand
 
     - Documentation
