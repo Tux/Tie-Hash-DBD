@@ -18,7 +18,7 @@ my %DB = (
 	t_key	=> "bytea primary key",
 	t_val	=> "bytea",
 	clear	=> "truncate table",
-	autoc	=> 0,
+	autoc	=> 1,
 	},
     Unify	=> {	# Doesn't work: needs commit between create and use
 	temp	=> "",
@@ -62,12 +62,24 @@ my %DB = (
 
 sub _create_table
 {
-    my ($cnf, $tmp) = shift;
+    my ($cnf, $tmp) = @_;
     $cnf->{tmp} = $tmp;
-    local $cnf->{dbh}->{PrintWarn} = 0;
+
+    my $dbh = $cnf->{dbh};
+
+    my $exists = 0;
+    eval {
+	local $dbh->{PrintError} = 0;
+	my $sth = $dbh->prepare ("select $cnf->{f_k}, $cnf->{f_v} from $cnf->{tbl}");
+	$sth->execute;
+	$cnf->{tmp} = 0;
+	$exists = 1;
+	};
+    $exists and return;	# Table already exists
+
     my ($temp, $t_key, $t_val) = @{$DB{$cnf->{dbt}}}{qw( temp t_key t_val )};
-    $tmp or $temp = "";
-    $cnf->{dbh}->do (
+    $cnf->{tmp} or $temp = "";
+    $dbh->do (
 	"create $temp table $cnf->{tbl} (".
 	    "$cnf->{f_k} $t_key,".
 	    "$cnf->{f_v} $t_val)"
@@ -78,22 +90,27 @@ sub TIEHASH
 {
     my $pkg = shift;
     my $usg = qq{usage: tie %h, "$pkg", \$dbh [, { tbl => "tbl", key => "f_key", fld => "f_value" }];};
-    my $dbh = shift or croak $usg;
+    my $dsn = shift or croak $usg;
     my $opt = shift;
 
-    ref $dbh or
-	$dbh = DBI->connect ($dbh, undef, undef, {
+    my $dbh = ref $dsn
+	? $dsn->clone
+	: DBI->connect ($dsn, undef, undef, {
 	    PrintError       => 1,
 	    RaiseError       => 1,
-	    PrintWarn        => 1,
+	    PrintWarn        => 0,
 	    FetchHashKeyName => "NAME_lc",
-	    }) || croak DBI->errstr;
+	    }) or croak DBI->errstr;
 
     my $dbt = $dbh->{Driver}{Name} || "no DBI handle";
     my $cnf = $DB{$dbt} or croak "I don't support database '$dbt'";
     my $f_k = "h_key";
     my $f_v = "h_value";
     my $tmp = 0;
+
+    $dbh->{PrintWarn}   = 0;
+    $dbh->{AutoCommit}  = $cnf->{autoc} if exists $cnf->{autoc};
+    $dbh->{LongReadLen} = 4_194_304     if $dbt eq "Oracle";
 
     my $h = {
 	dbt => $dbt,
@@ -119,13 +136,10 @@ sub TIEHASH
     unless ($h->{tbl}) {	# Create a temporary table
 	$tmp = ++$dbdx;
 	$h->{tbl} = "t_tie_dbd_$$" . "_$tmp";
-	_create_table ($h, $tmp);
 	}
+    _create_table ($h, $tmp);
 
     my $tbl = $h->{tbl};
-
-    local $dbh->{AutoCommit}  = $cnf->{autoc} if exists $cnf->{autoc};
-    local $dbh->{LongReadLen} = 4_194_304     if $dbt eq "Oracle";
 
     $h->{ins} = $dbh->prepare ("insert into $tbl values (?, ?)");
     $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
@@ -238,11 +252,25 @@ sub SCALAR
     $r->[0];
     } # SCALAR
 
+sub drop
+{
+    my $self = shift;
+    $self->{tmp} = 1;
+    } # drop
+
 sub DESTROY
 {
     my $self = shift;
     $self->{$_}->finish for qw( sel ins upd del cnt ctv );
-    $self->{tmp} and $self->{dbh}->do ("drop table ".$self->{tbl});
+    if ($self->{tmp}) {
+	$self->{dbh}->do ("drop table ".$self->{tbl});
+	$self->{dbh}{AutoCommit} || $DB{$self->{dbt}}{autoc} or
+	    $self->{dbh}->rollback;
+	}
+    else {
+	$self->{dbh}{AutoCommit} || $DB{$self->{dbt}}{autoc} or
+	    $self->{dbh}->commit;
+	}
     } # DESTROY
 
 1;
@@ -375,6 +403,16 @@ all structure is lost when the data is stored and not available when the
 data is restored. To maintain deep structures, use the streamer option:
 
   tie my %hash, "Tie::Hash::DBD", { str => "Storable" };
+
+=head1 METHODS
+
+=head2 drop ()
+
+If a table was used with persistence, the table will not be dropped when
+the C<untie> is called.  Dropping can be forced using the C<drop> method
+at any moment while the hash is tied:
+
+  (tied %hash)->drop;
 
 =head1 PREREQUISITES
 

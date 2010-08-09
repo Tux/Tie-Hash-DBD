@@ -6,18 +6,21 @@ use warnings;
 use Test::More;
 use Tie::Hash::DBD;
 
+require "t/util.pl";
+
 my %hash;
-unlink $_ for glob "t_tie_dbd_*.csv";
-eval { tie %hash, "Tie::Hash::DBD", "dbi:CSV:f_ext=.csv/r", { str => "Storable" } };
+my $DBD = "CSV";
+cleanup ($DBD);
+eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD), { str => "Storable" } };
 
 unless (tied %hash) {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     $reason and substr $reason, 0, 0, " - ";
-    plan skip_all => "Cannot tie using DBD::CSV$reason";
+    plan skip_all => "Cannot tie using DBD::$DBD$reason";
     }
 
-ok (tied %hash,			"Hash tied");
+ok (tied %hash,						"Hash tied");
 
 # insert
 ok ($hash{c1} = 1,					"c1 = 1");
@@ -80,6 +83,6 @@ $SQL::Statement::VERSION =~ m/^1.(28|29|30)$/ or
     is_deeply (\%hash, {},				"Clear");
 
 untie %hash;
-unlink $_ for glob "t_tie_dbd_*.csv";
+cleanup ($DBD);
 
 done_testing;

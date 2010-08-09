@@ -6,17 +6,18 @@ use warnings;
 use Test::More;
 use Tie::Hash::DBD;
 
+require "t/util.pl";
+
 my %hash;
-eval {
-    my $db = $ENV{MYSQLDB} || $ENV{LOGNAME} || scalar getpwuid $<;
-    tie %hash, "Tie::Hash::DBD", "dbi:mysql:database=$db";
-    };
+my $DBD = "mysql";
+cleanup ($DBD);
+eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD) };
 
 unless (tied %hash) {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     $reason and substr $reason, 0, 0, " - ";
-    plan skip_all => "Cannot tie using DBD::mysql$reason";
+    plan skip_all => "Cannot tie using DBD::$DBD$reason";
     }
 
 ok (tied %hash,			"Hash tied");
@@ -33,5 +34,6 @@ foreach my $size (10, 100) {
     }
 
 untie %hash;
+cleanup ($DBD);
 
 done_testing;

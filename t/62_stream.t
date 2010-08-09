@@ -6,25 +6,21 @@ use warnings;
 use Test::More;
 use Tie::Hash::DBD;
 
+require "t/util.pl";
+
 my %hash;
-my @id = split m{/} => ($ENV{ORACLE_USERID} || "/");
-$ENV{DBI_USER} ||= $id[0];
-$ENV{DBI_PASS} ||= $id[1];
-
-($ENV{ORACLE_SID} || $ENV{TWO_TASK}) && -d ($ENV{ORACLE_HOME} || "/-..\x03") &&
-   $ENV{DBI_USER}    &&  $ENV{DBI_PASS} or
-    plan skip_all => "Not a testable ORACLE env";
-
-eval { tie %hash, "Tie::Hash::DBD", "dbi:Oracle:", { str => "Storable" } };
+my $DBD = "Oracle";
+cleanup ($DBD);
+eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD), { str => "Storable" } };
 
 unless (tied %hash) {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     $reason and substr $reason, 0, 0, " - ";
-    plan skip_all => "Cannot tie using DBD::SQLite$reason";
+    plan skip_all => "Cannot tie using DBD::$DBD$reason";
     }
 
-ok (tied %hash,			"Hash tied");
+ok (tied %hash,						"Hash tied");
 
 # insert
 ok ($hash{c1} = 1,					"c1 = 1");
@@ -86,6 +82,6 @@ is_deeply ($hash{deep}, \%deep,				"Content");
 is_deeply (\%hash, {},					"Clear");
 
 untie %hash;
-unlink "db.3";
+cleanup ($DBD);
 
 done_testing;

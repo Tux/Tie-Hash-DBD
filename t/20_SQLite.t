@@ -6,15 +6,18 @@ use warnings;
 use Test::More;
 use Tie::Hash::DBD;
 
+require "t/util.pl";
+
 my %hash;
-unlink "db.3";
-eval { tie %hash, "Tie::Hash::DBD", "dbi:SQLite:dbname=db.3" };
+my $DBD = "SQLite";
+cleanup ($DBD);
+eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD) };
 
 unless (tied %hash) {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     $reason and substr $reason, 0, 0, " - ";
-    plan skip_all => "Cannot tie using DBD::SQLite$reason";
+    plan skip_all => "Cannot tie using DBD::$DBD$reason";
     }
 
 ok (tied %hash,						"Hash tied");
@@ -56,6 +59,6 @@ ok ($hash{$anr} = $anr,					"Binary key and value");
 is_deeply (\%hash, {},					"Clear");
 
 untie %hash;
-unlink "db.3";
+cleanup ($DBD);
 
 done_testing;

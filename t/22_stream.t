@@ -6,18 +6,21 @@ use warnings;
 use Test::More;
 use Tie::Hash::DBD;
 
+require "t/util.pl";
+
 my %hash;
-unlink "db.3";
-eval { tie %hash, "Tie::Hash::DBD", "dbi:SQLite:dbname=db.3", { str => "Storable" } };
+my $DBD = "SQLite";
+cleanup ($DBD);
+eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD), { str => "Storable" } };
 
 unless (tied %hash) {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     $reason and substr $reason, 0, 0, " - ";
-    plan skip_all => "Cannot tie using DBD::SQLite$reason";
+    plan skip_all => "Cannot tie using DBD::$DBD$reason";
     }
 
-ok (tied %hash,			"Hash tied");
+ok (tied %hash,						"Hash tied");
 
 # insert
 ok ($hash{c1} = 1,					"c1 = 1");
@@ -79,6 +82,6 @@ is_deeply ($hash{deep}, \%deep,				"Content");
 is_deeply (\%hash, {},					"Clear");
 
 untie %hash;
-unlink "db.3";
+cleanup ($DBD);
 
 done_testing;

@@ -4,6 +4,7 @@ Revision history for Tie::DBD
 
     - Documentation
     - Raise Oracle BLOB read length
+    - Implement and test persistence
 
 0.03	09 Aug 2010 - H.Merijn Brand
 
