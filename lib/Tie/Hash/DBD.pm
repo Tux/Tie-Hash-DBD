@@ -124,7 +124,8 @@ sub TIEHASH
 
     my $tbl = $h->{tbl};
 
-    local $dbh->{AutoCommit} = $cnf->{autoc} if exists $cnf->{autoc};
+    local $dbh->{AutoCommit}  = $cnf->{autoc} if exists $cnf->{autoc};
+    local $dbh->{LongReadLen} = 4_194_304     if $dbt eq "Oracle";
 
     $h->{ins} = $dbh->prepare ("insert into $tbl values (?, ?)");
     $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
@@ -369,6 +370,10 @@ the keys will be converted to ASCII for Oracle. The maximum length for a
 converted key in Oracle is 4000 characters. The fact that the key has to
 be converted to ASCII representation,  also excludes C<undef> as a valid
 key value.
+
+C<DBD::Oracle> limits the size of BLOB-reads to 4kb by default, which is
+too small for reasonable data structures.  Tie::Hash::DBD locally raises
+this value to 4Mb, which is still an arbitrary limit.
 
 =item *
 

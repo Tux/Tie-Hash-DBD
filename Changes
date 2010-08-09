@@ -2,7 +2,7 @@ Revision history for Tie::DBD
 
 0.04	09 Aug 2010 - H.Merijn Brand
 
-    -
+    - Raise Oracle BLOB read length
 
 0.03	09 Aug 2010 - H.Merijn Brand
 
