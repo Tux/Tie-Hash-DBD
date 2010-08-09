@@ -273,6 +273,7 @@ Tie::Hash::DBD, tie a plain hash to a database table
   $hash{key} = 3;       # UPDATE
   delete $hash{key};    # DELETE
   $value = $hash{key};  # SELECT
+  %hash = ();           # CLEAR
 
 =head1 DESCRIPTION
 
@@ -286,6 +287,9 @@ This module ties a hash to a database table using B<only> a C<key> and a
 C<value> field. If no tables specification is passed, this will create a
 temporary table with C<h_key> for the key field and a C<h_value> for the
 value field.
+
+I think it would make sense  to merge the functionality that this module
+provides into C<Tie::DBI>.
 
 =head1 tie
 
@@ -352,6 +356,26 @@ feature.
 
 =back
 
+=head2 Encoding
+
+C<Tie::Hash::DBD> stores keys and values as binary data. This means that
+all Encoding and magic is lost when the data is stored, and thus is also
+not available when the data is restored,  hence all internal information
+about the data is also lost, which includes the C<UTF8> flag.
+
+If you want to preserve the C<UTF8> flag you will need to store internal
+flags and use the streamer option:
+
+  tie my %hash, "Tie::Hash::DBD", { str => "Storable" };
+
+=head2 Nesting and deep structures
+
+C<Tie::Hash::DBD> stores keys and values as binary data. This means that
+all structure is lost when the data is stored and not available when the
+data is restored. To maintain deep structures, use the streamer option:
+
+  tie my %hash, "Tie::Hash::DBD", { str => "Storable" };
+
 =head1 PREREQUISITES
 
 The only real prerequisite is DBI but of course that uses the DBD driver
@@ -377,7 +401,10 @@ this value to 4Mb, which is still an arbitrary limit.
 
 =item *
 
-This module does not preserve magic on data.
+C<Storable> does not support persistence of perl types C<IO>, C<REGEXP>,
+C<CODE>, C<FORMAT>, and C<GLOB>.  Future extensions might implement some
+alternative streaming modules, like C<Data::Dump::Streamer> or use mixin
+approaches that enable you to fit in your own.
 
 =back
 
@@ -413,3 +440,5 @@ it under the same terms as Perl itself.
 DBI, Tie::DBI, Tie::Hash
 
 =cut
+
+":ex:se gw=72";
