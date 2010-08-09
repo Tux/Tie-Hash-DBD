@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use Time::HiRes qw( gettimeofday tv_interval );
 use Tie::Hash::DBD;
 
 require "t/util.pl";
@@ -29,8 +30,14 @@ foreach my $size (10, 100) {
 
     my $s_size = 2 * $size;
 
+    my $t0 = [ gettimeofday ];
     ok (%hash = %plain,		"Assign hash $s_size elements");
+    my $elapsed = tv_interval ($t0);
+    note (sprintf "Write %.3f recs/sec", $s_size / $elapsed);
+    $t0 = [ gettimeofday ];
     is_deeply (\%hash, \%plain,	"Content $s_size");
+    $elapsed = tv_interval ($t0);
+    note (sprintf "Read  %.3f recs/sec", $s_size / $elapsed);
     }
 
 untie %hash;
