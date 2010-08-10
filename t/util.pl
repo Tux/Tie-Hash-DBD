@@ -33,7 +33,7 @@ sub dsn
 	-d ($ENV{UNIFY}  || "/-..\x03") &&
 	-d ($ENV{DBPATH} || "/-..\x03") or
 	    plan skip_all => "Not a testable Unify env";
-	return "dbi:Oracle:";
+	return "dbi:Unify:";
 	}
     } # dsn
 

@@ -56,7 +56,7 @@ ok ($hash{$anr} = $anr,					"Binary key and value");
 
 # clear
 %hash = ();
-$SQL::Statement::VERSION =~ m/^1.(28|29|30)$/ or
+$SQL::Statement::VERSION =~ m/^1.(2[0-9]|30)$/ or
     is_deeply (\%hash, {},				"Clear");
 
 untie %hash;
