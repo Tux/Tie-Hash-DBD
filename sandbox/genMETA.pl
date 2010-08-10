@@ -70,7 +70,7 @@ author:
 generated_by:            Author
 distribution_type:       module
 provides:
-    Tie::DBD:
+    Tie::Hash::DBD:
         file:            lib/Tie/Hash/DBD.pm
         version:         VERSION
 requires:     
