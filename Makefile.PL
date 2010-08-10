@@ -23,6 +23,16 @@ my %wm = (
 
 my $rv = WriteMakefile (%wm);
 
+if ($rv && -s "Makefile") {
+    open my $mf, "<", "Makefile" or die "Cannot read Makefile: $!\n";
+    my @MF = <$mf>;
+    close $mf;
+    s/\bPERL_DL_NONLAZY=\d+\s+// for @MF;
+    open  $mf, ">", "Makefile"   or die "Cannot modify Makefile: $!\n";
+    print $mf @MF;
+    close $mf;
+    }
+
 1;
 
 package MY;
