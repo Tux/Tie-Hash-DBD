@@ -13,8 +13,8 @@ sub dsn
 
     if ($type eq "Oracle") {
 	my @id = split m{/} => ($ENV{ORACLE_USERID} || "/");
-	$ENV{DBI_USER} ||= $id[0];
-	$ENV{DBI_PASS} ||= $id[1];
+	$ENV{DBI_USER} = $id[0];
+	$ENV{DBI_PASS} = $id[1];
 
 	($ENV{ORACLE_SID} || $ENV{TWO_TASK}) &&
 	-d ($ENV{ORACLE_HOME} || "/-..\x03") &&
@@ -27,6 +27,14 @@ sub dsn
 	my $db = $ENV{MYSQLDB} || $ENV{LOGNAME} || scalar getpwuid $<;
 	return "dbi:mysql:database=$db";
 	}
+
+    if ($type eq "Unify") {
+	$ENV{DBI_USER} = $ENV{USCHEMA} || "";
+	-d ($ENV{UNIFY}  || "/-..\x03") &&
+	-d ($ENV{DBPATH} || "/-..\x03") or
+	    plan skip_all => "Not a testable Unify env";
+	return "dbi:Oracle:";
+	}
     } # dsn
 
 sub cleanup
@@ -36,6 +44,7 @@ sub cleanup
     $type eq "Pg"	and return;
     $type eq "Oracle"	and return;
     $type eq "mysql"	and return;
+    $type eq "Unify"	and return;
 
     if ($type eq "SQLite") {
 	unlink $_ for glob "db.3*";

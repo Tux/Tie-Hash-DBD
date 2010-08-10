@@ -25,7 +25,6 @@ my %DB = (
 	t_key	=> "binary",
 	t_val	=> "binary",
 	clear	=> "truncate table",
-	autoc	=> 0,
 	},
     Oracle	=> {
 	# Oracle does not allow where clauses on BLOB's nor does it allow
@@ -42,7 +41,7 @@ my %DB = (
 	t_key	=> "blob",	# Does not allow binary to be primary key
 	t_val	=> "blob",
 	clear	=> "truncate table",
-	autoc	=> 1,
+	autoc	=> 0,
 	},
     SQLite	=> {
 	temp	=> "temporary",
@@ -66,6 +65,7 @@ sub _create_table
     $cnf->{tmp} = $tmp;
 
     my $dbh = $cnf->{dbh};
+    my $dbt = $cnf->{dbt};
 
     my $exists = 0;
     eval {
@@ -77,14 +77,15 @@ sub _create_table
 	};
     $exists and return;	# Table already exists
 
-    my ($temp, $t_key, $t_val) = @{$DB{$cnf->{dbt}}}{qw( temp t_key t_val )};
+    my ($temp, $t_key, $t_val) = @{$DB{$dbt}}{qw( temp t_key t_val )};
     $cnf->{tmp} or $temp = "";
-    local $dbh->{AutoCommit} = 1 unless $cnf->{dbt} eq "CSV";
+    local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
     $dbh->do (
 	"create $temp table $cnf->{tbl} (".
 	    "$cnf->{f_k} $t_key,".
 	    "$cnf->{f_v} $t_val)"
 	);
+    $dbt eq "Unify" and $dbh->commit;
     } # create table
 
 sub TIEHASH
@@ -262,18 +263,22 @@ sub drop
 sub DESTROY
 {
     my $self = shift;
-    $self->{$_}->finish for qw( sel ins upd del cnt ctv );
+    my $dbh = $self->{dbh} or return;
+    for (qw( sel ins upd del cnt ctv )) {
+	$self->{$_} or next;
+	$self->{$_}->finish;
+	undef $self->{$_}; # DESTROY handle
+	}
     if ($self->{tmp}) {
-	$self->{dbh}{AutoCommit} || $DB{$self->{dbt}}{autoc} or
-	    $self->{dbh}->rollback;
-	$self->{dbh}->do ("drop table ".$self->{tbl});
-	$self->{dbh}{AutoCommit} or
-	    $self->{dbh}->commit;
+	$dbh->{AutoCommit} or $dbh->rollback;
+	$dbh->do ("drop table ".$self->{tbl});
+	$dbh->{AutoCommit} or $dbh->commit;
 	}
     else {
-	$self->{dbh}{AutoCommit} || $DB{$self->{dbt}}{autoc} or
-	    $self->{dbh}->commit;
+	$dbh->{AutoCommit} or $dbh->commit;
 	}
+    $dbh->disconnect;
+    undef $self->{dbh};
     } # DESTROY
 
 1;

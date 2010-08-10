@@ -26,5 +26,9 @@ t/60_Oracle.t
 t/61_bulk.t
 t/62_stream.t
 t/63_persist.t
+t/70_Unify.t
+t/71_bulk.t
+t/72_stream.t
+t/73_persist.t
 t/util.pl
 examples/copy.pl

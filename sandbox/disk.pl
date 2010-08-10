@@ -3,6 +3,25 @@
 use strict;
 use warnings;
 
+sub usage
+{
+    my $err = shift and select STDERR;
+    print "usage: $0 [--verbose[=<level>]] [--fast | --long]\n";
+    exit $err;
+    } # usage
+
+use Getopt::Long qw(:config bundling nopermute);
+my $opt_v = 1;
+my $opt_f = 0;
+my $opt_l = 0;
+GetOptions (
+    "help|?"	=> sub { usage (0); },
+
+    "v|verbose:2"	=> \$opt_v,
+    "f|s|fast|short!"	=> \$opt_f,
+    "l|long|slow!"	=> \$opt_l,
+    ) or usage (1);
+
 use Data::Peek;
 use DB_File;
 use Tie::Hash::DBD;
@@ -17,7 +36,8 @@ my @conf = (
     [ "Pg",      "Tie::Hash::DBD", "dbi:Pg:"				],
     [ "mysql",   "Tie::Hash::DBD", "dbi:mysql:database=merijn"		],
     [ "CSV",     "Tie::Hash::DBD", "dbi:CSV:f_ext=.csv/r;csv_null=1"	],
-#   [ "Oracle",  "Tie::Hash::DBD", "dbi:Oracle:"			],
+    [ "Oracle",  "Tie::Hash::DBD", "dbi:Oracle:"			],
+    [ "Unify",   "Tie::Hash::DBD", "dbi:Unify:"				],
     );
 
 unlink $_ for glob ("db.[23]*"), glob ("t_tie*.csv");
@@ -25,16 +45,30 @@ unlink $_ for glob ("db.[23]*"), glob ("t_tie*.csv");
 foreach my $r (@conf) {
     my ($name, $pkg, @args, %hash) = @$r;
 
-    $ENV{DBI_USER} = "PROLEP" if $name eq "Oracle";
-    $ENV{DBI_PASS} = "PROLEP" if $name eq "Oracle";
+    if ($name eq "Oracle") {
+	-d ($ENV{ORACLE_HOME} || "\x01") or next;
+	$ENV{DBI_USER} = "PROLEP";
+	$ENV{DBI_PASS} = "PROLEP";
+	}
+    if ($name eq "Unify") {
+	-d ($ENV{UNIFY}  || "\x01") or next;
+	-d ($ENV{DBPATH} || "\x01") or next;
+	$ENV{USCHEMA}  = "PROLEP";
+	$ENV{DBI_USER} = "PROLEP";
+	$ENV{DBI_PASS} = undef;
+	}
 
-    tie %hash, $pkg, @args;
+    eval { tie %hash, $pkg, @args };
+    $@ and next;
 
-    foreach my $size (10, 100, 1000, 10000) {#, 100000) {
+    foreach my $size (10, 100, 300, 1000, 10000, 100000) {
 
-	$name eq "CSV"    && $size >  100 and next;
-	$name eq "mysql"  && $size > 1000 and next;
-	$name eq "Oracle" && $size >  100 and next;
+	$opt_f            && $size >   300 and next;
+	$opt_l		  || $size < 50000 or  next;
+
+	$name eq "CSV"    && $size >   100 and next;
+	$name eq "mysql"  && $size >  1000 and next;
+	$name eq "Oracle" && $size >   100 and next;
 
 	print STDERR " $name $size                \r";
 
