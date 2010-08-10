@@ -348,10 +348,11 @@ Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
 DBD::Oracle, and DBD::Unify.
 
 DBD::Pg and DBD::SQLite have an unexpected great performance when server
-is the local system.
+is the local system. DBD::SQLite is even almost as fast as DB_File.
 
-The current implementation appears to be extremely slow for both CSV, as
-expected, and mysql. Patches welcome
+The current implementation appears to be extremely slow CSV, as expected,
+mysql, and Unify. For Unify and mysql that is because these do not allow
+indexing on the key field so they cannot be set to be primary key.
 
 =head2 Options
 
