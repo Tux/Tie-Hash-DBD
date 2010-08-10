@@ -13,6 +13,8 @@ use Storable qw( freeze thaw );
 my $dbdx = 0;
 
 my %DB = (
+    # k_asc is needed if h_key mush be converted to hex because
+    #       where clause is not permitted on binary/BLOB/...
     Pg		=> {
 	temp	=> "temp",
 	t_key	=> "bytea primary key",
@@ -20,11 +22,12 @@ my %DB = (
 	clear	=> "truncate table",
 	autoc	=> 0,
 	},
-    Unify	=> {	# Doesn't work: needs commit between create and use
+    Unify	=> {
 	temp	=> "",
-	t_key	=> "binary",
+	t_key	=> "text",
 	t_val	=> "binary",
-	clear	=> "truncate table",
+	clear	=> "delete from",
+	k_asc	=> 1,
 	},
     Oracle	=> {
 	# Oracle does not allow where clauses on BLOB's nor does it allow
@@ -34,7 +37,7 @@ my %DB = (
 	t_val	=> "blob",
 	clear	=> "truncate table",
 	autoc	=> 0,
-	k_asc	=> 1,		# Does not allow where on BLOB
+	k_asc	=> 1,
 	},
     mysql	=> {
 	temp	=> "temporary",
