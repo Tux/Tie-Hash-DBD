@@ -66,10 +66,6 @@ foreach my $r (@conf) {
 	$opt_f            && $size >   300 and next;
 	$opt_l		  || $size < 50000 or  next;
 
-	$name eq "CSV"    && $size >   100 and next;
-	$name eq "mysql"  && $size >  1000 and next;
-	$name eq "Oracle" && $size >   100 and next;
-
 	print STDERR " $name $size                \r";
 
 	my %plain = map { ( $_ => $_ ) }
@@ -87,6 +83,8 @@ foreach my $r (@conf) {
 	my %x = %hash;
 	$elapsed = tv_interval ($t0);
 	$t{$s_size}{rd}{$name} = $s_size / $elapsed;
+
+	$t{$s_size}{rd}{$name} < 275 and last; # Next size will take too long
 	}
 
     untie %hash;
