@@ -85,6 +85,9 @@ is_deeply (\@array, [ "a".."c", 1..3 ],			"Array");
 # ok ((splice @array, 2, 2),				"Splice");
 # is_deeply (\@array, [ "a".."b", 2..3 ],		"Array");
 
+ok (@array = (1..3),					"Bulk");
+is_deeply (\@array, [ 1..3 ],				"Array");
+
 # clear
 @array = ();
 $SQL::Statement::VERSION =~ m/^1.(2[0-9]|30)$/ or
