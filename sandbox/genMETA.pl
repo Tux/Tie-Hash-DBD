@@ -73,6 +73,9 @@ provides:
     Tie::Hash::DBD:
         file:            lib/Tie/Hash/DBD.pm
         version:         VERSION
+    Tie::Array::DBD:
+        file:            lib/Tie/Array/DBD.pm
+        version:         VERSION
 requires:     
     perl:                5.008
     Carp:                0
@@ -80,6 +83,7 @@ requires:
     Storable:            0
 recommends:     
     perl:                5.012001
+    DBD::SQLite:         0.29
 configure_requires:
     ExtUtils::MakeMaker: 0
 build_requires:
