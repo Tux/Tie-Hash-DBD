@@ -55,9 +55,10 @@ is_deeply (\@array, [ 0..6 ],				"Array");
 is (pop @array, 6,					"Pop 6");
 is_deeply (\@array, [ 0..5 ],				"Array");
 
-# keys, values
-is_deeply ([ sort keys   @array ], [ 0..5 ],		"Keys");
-is_deeply ([ sort values @array ], [ 0..5 ],		"Values");
+if ($] >= 5.011) { # keys, values
+    is_deeply ([ sort keys   @array ], [ 0..5 ],	"Keys");
+    is_deeply ([ sort values @array ], [ 0..5 ],	"Values");
+    }
 
 # Scalar/count
 is (      $#array, 5,					"Scalar index");
