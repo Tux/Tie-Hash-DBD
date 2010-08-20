@@ -1,6 +1,6 @@
 package Tie::Hash::DBD;
 
-our $VERSION = "0.06";
+our $VERSION = "0.07";
 
 use strict;
 use warnings;
@@ -140,7 +140,7 @@ sub TIEHASH
 
     unless ($h->{tbl}) {	# Create a temporary table
 	$tmp = ++$dbdx;
-	$h->{tbl} = "t_tie_dbd_$$" . "_$tmp";
+	$h->{tbl} = "t_tie_dbdh_$$" . "_$tmp";
 	}
     _create_table ($h, $tmp);
 
@@ -364,7 +364,7 @@ options. The following options are recognized:
 =item tbl
 
 Defines the name of the table to be used. If none is passed, a new table
-is created with a unique name like C<t_tie_dbd_422531_1>. When possible,
+is created with a unique name like C<t_tie_dbdh_42253_1>. When possible,
 the table is created as I<temporary>. After the session, this table will
 be dropped.
 
