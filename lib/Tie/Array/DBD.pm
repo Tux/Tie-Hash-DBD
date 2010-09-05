@@ -268,7 +268,7 @@ sub SHIFT
 {
     my $self = shift;
     my $val  = $self->DELETE (0);
-    my $stu = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = $self->{f_k} - 1 where $self->{f_k} = ?");
+    my $stu  = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = $self->{f_k} - 1 where $self->{f_k} = ?");
     $stu->execute ($_) for sort { $a <=> $b } map { $_->[0] }
 	@{$self->{dbh}->selectall_arrayref ("select $self->{f_k} from $self->{tbl}")};
     $stu->finish;
@@ -281,7 +281,7 @@ sub UNSHIFT
     my ($self, @val) = @_;
     @val or return;
     my $incr = scalar @val;
-    my $stu = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = $self->{f_k} + $incr where $self->{f_k} = ?");
+    my $stu  = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = $self->{f_k} + $incr where $self->{f_k} = ?");
     $stu->execute ($_) for reverse sort { $a <=> $b } map { $_->[0] }
 	@{$self->{dbh}->selectall_arrayref ("select $self->{f_k} from $self->{tbl}")};
     $stu->finish;
@@ -290,12 +290,35 @@ sub UNSHIFT
     return $self->FETCHSIZE;
     } # UNSHIFT
 
+# splice ARRAY, OFFSET, LENGTH, LIST
+# splice ARRAY, OFFSET, LENGTH
+# splice ARRAY, OFFSET
+# splice ARRAY
+#
+#   Removes the elements designated by OFFSET and LENGTH from an array, and
+#   replaces them with the elements of LIST, if any.
+#
+#   In list   context, returns the elements removed from the array.
+#   In scalar context, returns the last element removed, or "undef" if
+#    no elements are removed.
+#
+#   The array grows or shrinks as necessary.
+#
+#   If OFFSET is negative then it starts that far from the end of the array.
+#   If LENGTH is omitted, removes everything from OFFSET onward.
+#   If LENGTH is negative, removes the elements from OFFSET onward except for
+#     -LENGTH elements at the end of the array.
+#   If both OFFSET and LENGTH are omitted, removes everything.
+#   If OFFSET is past the end of the array, Perl issues a warning, and splices
+#     at the end of the array.
+
 sub SPLICE
 {
-    my ($self, $off, $len, @val) = @_;
+    my $nargs = $#_;
+    my ($self, $off, $len, @new, @val) = @_;
 
     # splice @array;
-    unless (defined $off) {
+    if ($nargs == 0) {
 	if (wantarray) {
 	    @val = map { $self->FETCH ($_) } 0 .. $self->{max};
 	    $self->CLEAR;
@@ -306,6 +329,48 @@ sub SPLICE
 	return $val[0];
 	}
 
+    # Take care of negative offset, count from tail
+    $off < 0 and $off = $self->{max} + 1 + $off;
+    $off < 0 and
+	croak "Modification of non-creatable array value attempted, subscript $_[1]";
+
+    # splice @array, off;
+    if ($nargs == 1) {
+	$off > $self->{max} and return;
+
+	if (wantarray) {
+	    @val = map { $self->FETCH ($_) } $off .. $self->{max};
+	    $self->STORESIZE ($off);
+	    return @val;
+	    }
+	$val[0] = $self->FETCH ($self->{max});
+	$self->STORESIZE ($off);
+	return $val[0];
+	}
+
+    # splice @array, off, len;
+    $nargs == 2 && $off  > $self->{max} and return;
+
+    my $last = $len < 0 ? $self->{max} + $len : $off + $len - 1;
+    $nargs == 2 && $last > $self->{max} and return $self->SPLICE ($off);
+
+    @val = map { $self->DELETE ($_) } $off .. $last;
+    $len = @val;
+    my $stu = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = ? where $self->{f_k} = ?");
+    $stu->execute ($_ - $len, $_) for ($last + 1) .. $self->{max};
+    $self->{max} -= $len;
+
+    # splice @array, off, len, replacement-list;
+    if (@new) {
+	my $new = @new;
+	my $stu = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = ? where $self->{f_k} = ?");
+	$stu->execute ($_ + $new, $_) for reverse $off .. $self->{max};
+	$self->STORE ($off + $_, $new[$_]) for 0..$#new;
+	$self->{max} += $new;
+	}
+
+    $stu->finish;
+    return wantarray ? @val : $val[-1];
     } # SPLICE
 
 sub FIRSTKEY
@@ -339,6 +404,17 @@ sub drop
     my $self = shift;
     $self->{tmp} = 1;
     } # drop
+
+sub _dump_table
+{
+    my $self = shift;
+    my $sth = $self->{dbh}->prepare ("select $self->{f_k}, $self->{f_v} from $self->{tbl} order by $self->{f_k}");
+    $sth->execute;
+    $sth->bind_columns (\my ($k, $v));
+    while ($sth->fetch) {
+	printf STDERR "%6d: '%s'\n", $k, $self->_unstream ($v);
+	}
+    } # _dump_table
 
 sub DESTROY
 {

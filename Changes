@@ -1,10 +1,9 @@
 Revision history for Tie::DBD
 
-0.07	20 Aug 2010 - H.Merijn Brand
+0.07	05 Sep 2010 - H.Merijn Brand
 
     - More tests
-    - Start implementation of Tie::Array::DBD
-      (no splice support yet)
+    - Implementation of Tie::Array::DBD
 
 0.06	10 Aug 2010 - H.Merijn Brand
 

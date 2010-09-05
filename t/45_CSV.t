@@ -82,17 +82,61 @@ is (unshift (@array, "c"), 4,				"Unshift single");
 is (unshift (@array, "a", "b"), 6,			"Unshift multi");
 is_deeply (\@array, [ "a".."c", 1..3 ],			"Array");
 
-# splice - NYI
-# ok ((splice @array, 2, 2),				"Splice");
-# is_deeply (\@array, [ "a".."b", 2..3 ],		"Array");
-
 ok (@array = (1..3),					"Bulk");
 is_deeply (\@array, [ 1..3 ],				"Array");
 
 # clear
 @array = ();
-$SQL::Statement::VERSION =~ m/^1.(2[0-9]|30)$/ or
-    is_deeply (\@array, [],				"Clear");
+is_deeply (\@array, [],					"Clear");
+
+# splice @array
+ok (@array = (0..9),					"Set for splice");
+is_deeply (\@array, [0..9],				"content");
+is_deeply ([splice (@array)],		[0..9],		"splice \@array");
+is_deeply (\@array, [],					".. leftover");
+ok (@array = (0..9),					"Set for splice");
+is_deeply (\@array, [0..9],				"content");
+is (scalar splice (@array),		9,		"splice \@array (scalar context)");
+is_deeply (\@array, [],					".. leftover");
+
+# splice @array, off
+eval { splice @array, -6 };
+like ($@, qr/^Modification of non-creatable/,		"Croak on negative offset");
+
+ok (@array = (0..9),					"Set for splice");
+is_deeply (\@array, [0..9],				"content");
+is_deeply ([splice (@array, 7)],	[7..9],		"splice \@array, off");
+is_deeply (\@array, [0..6],				".. leftover");
+is_deeply ([splice (@array, 8)],	[],		"splice \@array, off (past end of array)");
+is_deeply (\@array, [0..6],				".. leftover");
+ok (@array = (0..9),					"Set for splice");
+is_deeply (\@array, [0..9],				"content");
+is (scalar splice (@array, 4),		9,		"scalar splice \@array, off (scalar context)");
+is_deeply (\@array, [0..3],				".. leftover");
+
+# splice @array, off, len
+ok (@array = (0..9),					"Set for splice");
+is_deeply (\@array, [0..9],				"content");
+is_deeply ([splice (@array, 12, 4)],	[],		"splice \@array, off, len (past end of array)");
+is_deeply (\@array, [0..9],				"content");
+is_deeply ([splice (@array, 2, 4)],	[2..5],		"splice \@array, off, len");
+is_deeply (\@array, [0..1,6..9],			".. leftover");
+is_deeply ([splice (@array, 2, -2)],	[6..7],		"splice \@array, off, -len");
+is_deeply (\@array, [0..1,8..9],			".. leftover");
+is (scalar splice (@array, 2, 1),	8,		"scalar splice \@array, off, len");
+is_deeply (\@array, [0..1,9],				".. leftover");
+
+# splice @array, off, len, @new
+ok (@array = (0..9),					"Set for splice");
+is_deeply (\@array, [0..9],				"content");
+is_deeply ([splice (@array, 12, 4,)],	[],		"splice \@array, off, len,    (past end of array)");
+is_deeply ([splice (@array, 12, 4, ())],[],		"splice \@array, off, len, () (past end of array)");
+is_deeply (\@array, [0..9],				"content");
+is_deeply ([splice (@array, 2, 0, ())],	[],		"splice \@array, off, len, ()");
+is_deeply ([splice (@array, 2, 2, 3, 2)],	[2,3],	"splice \@array, off, len, ..");
+is_deeply (\@array, [0..1,3,2,4..9],			".. leftover");
+is_deeply ([splice (@array, 4, -2, 25)],	[4..7],	"splice \@array, off, -len");
+is_deeply (\@array, [0,1,3,2,25,8,9],			".. leftover");
 
 untie @array;
 cleanup ($DBD);
