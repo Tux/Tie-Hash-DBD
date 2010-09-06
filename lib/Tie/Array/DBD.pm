@@ -461,6 +461,16 @@ Tie::Array::DBD, tie a plain array to a database table
   $value = $array[42];  # SELECT
   @array = ();          # CLEAR
 
+  @array = (1..42);
+  $array[-2] = 42;
+  $_ = pop @array;
+  push @array, $_;
+  $_ = shift @array;
+  unshift @array, $_;
+  @a = splice @array, 2, -2, 5..9;
+  @k = keys   @array;   # $] >= 5.011
+  @v = values @array;   # $] >= 5.011
+
 =head1 DESCRIPTION
 
 This module ties an array to a database table using B<only> an C<index>
