@@ -1,6 +1,6 @@
 Revision history for Tie::DBD
 
-0.07	05 Sep 2010 - H.Merijn Brand
+0.07	06 Sep 2010 - H.Merijn Brand
 
     - More tests
     - Implementation of Tie::Array::DBD
