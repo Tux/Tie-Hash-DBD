@@ -15,34 +15,34 @@ my $dbdx = 0;
 my %DB = (
     Pg		=> {
 	temp	=> "temp",
-	t_key	=> "bigint primary key",
+	t_key	=> "bigint not null primary key",
 	t_val	=> "bytea",
 	clear	=> "truncate table",
 	autoc	=> 0,
 	},
     Unify	=> {
 	temp	=> "",
-	t_key	=> "numeric (9) primary key",
+	t_key	=> "numeric (9) not null primary key",
 	t_val	=> "binary",
 	clear	=> "delete from",
 	},
     Oracle	=> {
 	temp	=> "global temporary",	# Only as of Ora-9
-	t_key	=> "number (38) primary key",
+	t_key	=> "number (38) not null primary key",
 	t_val	=> "blob",
 	clear	=> "truncate table",
 	autoc	=> 0,
 	},
     mysql	=> {
 	temp	=> "temporary",
-	t_key	=> "bigint primary key",
+	t_key	=> "bigint not null primary key",
 	t_val	=> "blob",
 	clear	=> "truncate table",
 	autoc	=> 0,
 	},
     SQLite	=> {
 	temp	=> "temporary",
-	t_key	=> "integer primary key",
+	t_key	=> "integer not null primary key",
 	t_val	=> "text",
 	clear	=> "delete from",
 	pbind	=> 0, # TYPEs in SQLite are text, bind_param () needs int
@@ -50,7 +50,7 @@ my %DB = (
 	},
     CSV		=> {
 	temp	=> "temporary",
-	t_key	=> "integer primary key",
+	t_key	=> "integer not null primary key",
 	t_val	=> "text",
 	clear	=> "delete from",
 	},
