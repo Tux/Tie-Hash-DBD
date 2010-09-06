@@ -146,6 +146,7 @@ sub TIEARRAY
     $h->{sel} = $dbh->prepare ("select $f_v from $tbl where $f_k = ?");
     $h->{cnt} = $dbh->prepare ("select count(*) from $tbl");
     $h->{ctv} = $dbh->prepare ("select count(*) from $tbl where $f_k = ?");
+    $h->{uky} = $dbh->prepare ("update $tbl set $f_k = ? where $f_k = ?");
 
     unless (exists $cnf->{pbind} && !$cnf->{pbind}) {
 	my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl");
@@ -159,6 +160,8 @@ sub TIEARRAY
 	$h->{upd}->bind_param (2, undef, $typ[0]);
 	$h->{sel}->bind_param (1, undef, $typ[0]);
 	$h->{ctv}->bind_param (1, undef, $typ[0]);
+	$h->{uky}->bind_param (1, undef, $typ[0]);
+	$h->{uky}->bind_param (2, undef, $typ[0]);
 	}
 
     bless $h, $pkg;
@@ -268,10 +271,7 @@ sub SHIFT
 {
     my $self = shift;
     my $val  = $self->DELETE (0);
-    my $stu  = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = $self->{f_k} - 1 where $self->{f_k} = ?");
-    $stu->execute ($_) for sort { $a <=> $b } map { $_->[0] }
-	@{$self->{dbh}->selectall_arrayref ("select $self->{f_k} from $self->{tbl}")};
-    $stu->finish;
+    $self->{uky}->execute ($_ - 1, $_) for 1 .. $self->{max};
     $self->{max}--;
     return $val;
     } # SHIFT
@@ -281,10 +281,7 @@ sub UNSHIFT
     my ($self, @val) = @_;
     @val or return;
     my $incr = scalar @val;
-    my $stu  = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = $self->{f_k} + $incr where $self->{f_k} = ?");
-    $stu->execute ($_) for reverse sort { $a <=> $b } map { $_->[0] }
-	@{$self->{dbh}->selectall_arrayref ("select $self->{f_k} from $self->{tbl}")};
-    $stu->finish;
+    $self->{uky}->execute ($_ + $incr, $_) for reverse 0 .. $self->{max};
     $self->{max} += $incr;
     $self->STORE ($_, $val[$_]) for 0 .. $#val;
     return $self->FETCHSIZE;
@@ -356,20 +353,17 @@ sub SPLICE
 
     @val = map { $self->DELETE ($_) } $off .. $last;
     $len = @val;
-    my $stu = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = ? where $self->{f_k} = ?");
-    $stu->execute ($_ - $len, $_) for ($last + 1) .. $self->{max};
+    $self->{uky}->execute ($_ - $len, $_) for ($last + 1) .. $self->{max};
     $self->{max} -= $len;
 
     # splice @array, off, len, replacement-list;
     if (@new) {
 	my $new = @new;
-	my $stu = $self->{dbh}->prepare ("update $self->{tbl} set $self->{f_k} = ? where $self->{f_k} = ?");
-	$stu->execute ($_ + $new, $_) for reverse $off .. $self->{max};
+	$self->{uky}->execute ($_ + $new, $_) for reverse $off .. $self->{max};
 	$self->STORE ($off + $_, $new[$_]) for 0..$#new;
 	$self->{max} += $new;
 	}
 
-    $stu->finish;
     return wantarray ? @val : $val[-1];
     } # SPLICE
 
@@ -420,7 +414,7 @@ sub DESTROY
 {
     my $self = shift;
     my $dbh = $self->{dbh} or return;
-    for (qw( sel ins upd del cnt ctv )) {
+    for (qw( sel ins upd del cnt ctv uky )) {
 	$self->{$_} or next;
 	$self->{$_}->finish;
 	undef $self->{$_}; # DESTROY handle
