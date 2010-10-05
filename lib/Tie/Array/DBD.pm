@@ -1,6 +1,6 @@
 package Tie::Array::DBD;
 
-our $VERSION = "0.07";
+our $VERSION = "0.08";
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 
 use DBI;
-use Storable qw( freeze thaw );
+use Storable qw( nfreeze thaw );
 
 my $dbdx = 0;
 
@@ -173,7 +173,7 @@ sub _stream
     defined $val or return undef;
     $self->{str} or return $val;
 
-    $self->{str} eq "Storable" and return freeze ({ val => $val });
+    $self->{str} eq "Storable" and return nfreeze ({ val => $val });
     } # _stream
 
 sub _unstream
