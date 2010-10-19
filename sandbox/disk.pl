@@ -25,6 +25,7 @@ GetOptions (
 use Data::Peek;
 use DB_File;
 use Tie::Hash::DBD;
+eval "use Redis::Hash";
 
 use Time::HiRes qw( gettimeofday tv_interval );
 
@@ -32,6 +33,7 @@ my %t;
 
 my @conf = (
     [ "DB_File", "DB_File",        "db.2", O_RDWR|O_CREAT, 0666		],
+    [ "Redis",   "Redis::Hash",    "dbd_"				],
     [ "SQLite",  "Tie::Hash::DBD", "dbi:SQLite:dbname=db.3"		],
     [ "Pg",      "Tie::Hash::DBD", "dbi:Pg:"				],
     [ "mysql",   "Tie::Hash::DBD", "dbi:mysql:database=merijn"		],
@@ -87,10 +89,11 @@ foreach my $r (@conf) {
 	$t{$s_size}{rd}{$name} < 275 and last; # Next size will take too long
 	}
 
+    %hash = ();
     untie %hash;
     }
 
-my @name = map { $_->[0] } @conf;
+my @name = map { $_->[0] } grep { $t{20}{rd}{$_->[0]} } @conf;
 print "  Size op", (map { sprintf " %10s", $_ } @name), "\n",
       "------ --", (map { " ----------"       } @name), "\n";
 foreach my $size (sort { $a <=> $b } keys %t) {
