@@ -95,14 +95,14 @@ requires:
     Storable:            0
 configure_requires:
     ExtUtils::MakeMaker: 0
-build_requires:
-    perl:                5.008
+test_requires:
     Test::Harness:       0
     Test::More:          0.90
     Time::HiRes:         0
 recommends:     
-    perl:                5.012001
-    DBD::SQLite:         0.29
+    perl:                5.012003
+    DBI:                 1.616
+    DBD::SQLite:         1.31
     Test::More:          0.96
 resources:
     license:             http://dev.perl.org/licenses/
