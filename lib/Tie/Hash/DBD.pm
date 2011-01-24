@@ -124,6 +124,7 @@ sub TIEHASH
 	tmp => $tmp,
 	str => undef,
 	asc => $cnf->{k_asc} || 0,
+	trh => 0,
 	};
 
     if ($opt) {
@@ -133,10 +134,12 @@ sub TIEHASH
 	$opt->{fld} and $f_v      = $opt->{fld};
 	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
 	$opt->{str} and $h->{str} = $opt->{str};
+	$opt->{trh} and $h->{trh} = $opt->{trh};
 	}
 
     $h->{f_k} = $f_k;
     $h->{f_v} = $f_v;
+    $h->{trh} and $dbh->{AutoCommit} = 0;
 
     unless ($h->{tbl}) {	# Create a temporary table
 	$tmp = ++$dbdx;
@@ -193,18 +196,28 @@ sub STORE
     my ($self, $key, $value) = @_;
     my $k = $self->{asc} ? unpack "H*", $key : $key;
     my $v = $self->_stream ($value);
-    $self->EXISTS ($key)
+    $self->{trh} and $self->{dbh}->begin_work;
+    my $r = $self->EXISTS ($key)
 	? $self->{upd}->execute ($v, $k)
 	: $self->{ins}->execute ($k, $v);
+    $self->{trh} and $self->{dbh}->commit;
+    $r;
     } # STORE
 
 sub DELETE
 {
     my ($self, $key) = @_;
     $self->{asc} and $key = unpack "H*", $key;
+    $self->{trh} and $self->{dbh}->begin_work;
     $self->{sel}->execute ($key);
-    my $r = $self->{sel}->fetch or return;
+    my $r = $self->{sel}->fetch;
+    unless ($r) {
+	$self->{trh} and $self->{dbh}->rollback;
+	return;
+	}
+
     $self->{del}->execute ($key);
+    $self->{trh} and $self->{dbh}->commit;
     $self->_unstream ($r->[0]);
     } # DELETE
 
@@ -234,8 +247,13 @@ sub FETCH
 sub FIRSTKEY
 {
     my $self = shift;
+    $self->{trh} and $self->{dbh}->begin_work;
     $self->{key} = $self->{dbh}->selectcol_arrayref ("select $self->{f_k} from $self->{tbl}");
-    @{$self->{key}} or return;
+    $self->{trh} and $self->{dbh}->commit;
+    unless (@{$self->{key}}) {
+	$self->{trh} and $self->{dbh}->commit;
+	return;
+	}
     if ($self->{asc}) {
 	 $_ = pack "H*", $_ for @{$self->{key}};
 	 }
@@ -245,7 +263,10 @@ sub FIRSTKEY
 sub NEXTKEY
 {
     my $self = shift;
-    @{$self->{key}} or return;
+    unless (@{$self->{key}}) {
+	$self->{trh} and $self->{dbh}->commit;
+	return;
+	}
     pop @{$self->{key}};
     } # FIRSTKEY
 
@@ -305,7 +326,8 @@ Tie::Hash::DBD, tie a plain hash to a database table
       tbl => "t_tie_analysis",
       key => "h_key",
       fld => "h_value",
-      str => "Storable,
+      str => "Storable",
+      trh => 0,
       };
 
   $hash{key} = $value;  # INSERT
@@ -393,6 +415,13 @@ C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
 
 If you want to preserve Encoding on the hash values, you should use this
 feature.
+
+=item trh
+
+Use transaction Handles. By default none of the operations is guarded by
+transaction handling for speed reasons. Set C<trh> to a true value cause
+all actions to be surrounded by  C<begin_work> and C<commit>.  Note that
+this may have a big impact on speed.
 
 =back
 
