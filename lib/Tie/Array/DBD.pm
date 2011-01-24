@@ -452,7 +452,7 @@ Tie::Array::DBD, tie a plain array to a database table
       tbl => "t_tie_analysis",
       key => "h_key",
       fld => "h_value",
-      str => "Storable,
+      str => "Storable",
       };
 
   $array[42] = $value;  # INSERT
