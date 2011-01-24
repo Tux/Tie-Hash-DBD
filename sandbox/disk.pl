@@ -24,6 +24,7 @@ GetOptions (
 
 use Data::Peek;
 use DB_File;
+use CDB_File;
 use Tie::Hash::DBD;
 eval "use Redis::Hash";
 
@@ -33,6 +34,7 @@ my %t;
 
 my @conf = (
     [ "DB_File", "DB_File",        "db.2", O_RDWR|O_CREAT, 0666		],
+    [ "CDB_File","CDB_File",       "cdb.2"				],
     [ "Redis",   "Redis::Hash",    "dbd_"				],
     [ "SQLite",  "Tie::Hash::DBD", "dbi:SQLite:dbname=db.3"		],
     [ "Pg",      "Tie::Hash::DBD", "dbi:Pg:"				],
