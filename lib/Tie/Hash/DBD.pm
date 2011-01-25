@@ -141,7 +141,10 @@ sub TIEHASH
     $h->{f_v} = $f_v;
     $h->{trh} and $dbh->{AutoCommit} = 0;
 
-    unless ($h->{tbl}) {	# Create a temporary table
+    if ($h->{tbl}) {		# Used told the table name
+	$dbh->{AutoCommit} = 1 unless $h->{trh} || $dbt eq "CSV" || $dbt eq "Unify";
+	}
+    else {			# Create a temporary table
 	$tmp = ++$dbdx;
 	$h->{tbl} = "t_tie_dbdh_$$" . "_$tmp";
 	}
@@ -395,6 +398,9 @@ it will be used with the specified C<key> and C<fld>.  Otherwise it will
 be created with C<key> and <fld>,  but it will not be dropped at the end
 of the session.
 
+If a table name is provided, C<AutoCommit> will be "On" for persistence,
+unless you provide a true C<trh> attribute.
+
 =item key
 
 Defines the name of the key field in the database table.  The default is
@@ -484,6 +490,10 @@ C<Storable> does not support persistence of perl types C<IO>, C<REGEXP>,
 C<CODE>, C<FORMAT>, and C<GLOB>.  Future extensions might implement some
 alternative streaming modules, like C<Data::Dump::Streamer> or use mixin
 approaches that enable you to fit in your own.
+
+=item *
+
+Note that neither DBD::CSV nor DBD::Unify support C<AutoCommit>.
 
 =back
 
