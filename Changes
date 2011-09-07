@@ -1,9 +1,10 @@
 Revision history for Tie::DBD
 
-0.08	25 Jan 2011 - H.Merijn Brand
+0.08	07 Sep 2011 - H.Merijn Brand
 
     - Use Storable's nfreeze () instead of freeze ()
     - Add transaction support in Tie::Hash::DBD
+    - More cross-checks for META data
 
 0.07	06 Sep 2010 - H.Merijn Brand
 
