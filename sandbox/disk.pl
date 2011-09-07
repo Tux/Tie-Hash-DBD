@@ -36,6 +36,7 @@ my @conf = (
     [ "DB_File", "DB_File",        "db.2", O_RDWR|O_CREAT, 0666		],
     [ "CDB_File","CDB_File",       "cdb.2"				],
     [ "Redis",   "Redis::Hash",    "dbd_"				],
+    [ "Redis2",  "Redis::Hash",    "dbd2_", encoding => undef		],
     [ "SQLite",  "Tie::Hash::DBD", "dbi:SQLite:dbname=db.3"		],
     [ "Pg",      "Tie::Hash::DBD", "dbi:Pg:"				],
     [ "mysql",   "Tie::Hash::DBD", "dbi:mysql:database=merijn"		],
