@@ -61,9 +61,9 @@ test_requires:
     Test::More:          0.90
     Time::HiRes:         0
 recommends:     
-    perl:                5.014001
-    DBI:                 1.616
-    DBD::SQLite:         1.33
+    perl:                5.014002
+    DBI:                 1.617
+    DBD::SQLite:         1.35
     Test::More:          0.98
 resources:
     license:             http://dev.perl.org/licenses/
