@@ -14,12 +14,13 @@ my %wm = (
     AUTHOR       => "H.Merijn Brand <h.m.brand\@xs4all.nl>",
     LICENSE	 => "perl",
     VERSION_FROM => "lib/Tie/Hash/DBD.pm",
-    PREREQ_PM	 => {
-	"Carp"			=> 0,
-	"Test::More"		=> 0.90,
-	"DBI"			=> 1.613,
-	"Storable"		=> 0,
-	},
+    PREREQ_PM	 => { "Carp"		=> 0,
+		      "Test::More"	=> 0.90,
+		      "DBI"		=> 1.613,
+		      "Storable"	=> 0,
+		      },
+    macro        => { TARFLAGS => "--format=ustar -c -v -f",
+		      },
     );
 
 my $rv = WriteMakefile (%wm);
