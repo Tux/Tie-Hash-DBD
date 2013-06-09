@@ -62,7 +62,7 @@ test_requires:
     Time::HiRes:         0
 recommends:     
     perl:                5.016003
-    DBI:                 1.625
+    DBI:                 1.628
     DBD::SQLite:         1.37
     Test::More:          0.98
 resources:
