@@ -26,26 +26,33 @@ use Data::Peek;
 use DB_File;
 use CDB_File;
 use Tie::Hash::DBD;
-eval "use Redis::Hash";
+eval "use $_" for qw( Redis::Hash GDBM_File NDBM_File ODBM_File SDBM_File );
+my $DB_CREATE = eval "use BerkeleyDB; DB_CREATE;";
 
 use Time::HiRes qw( gettimeofday tv_interval );
 
 my %t;
 
 my @conf = (
-    [ "DB_File", "DB_File",        "db.2", O_RDWR|O_CREAT, 0666		],
-    [ "CDB_File","CDB_File",       "cdb.2"				],
-    [ "Redis",   "Redis::Hash",    "dbd_"				],
-    [ "Redis2",  "Redis::Hash",    "dbd2_", encoding => undef		],
-    [ "SQLite",  "Tie::Hash::DBD", "dbi:SQLite:dbname=db.3"		],
-    [ "Pg",      "Tie::Hash::DBD", "dbi:Pg:"				],
-    [ "mysql",   "Tie::Hash::DBD", "dbi:mysql:database=merijn"		],
-    [ "CSV",     "Tie::Hash::DBD", "dbi:CSV:f_ext=.csv/r;csv_null=1"	],
-    [ "Oracle",  "Tie::Hash::DBD", "dbi:Oracle:"			],
-    [ "Unify",   "Tie::Hash::DBD", "dbi:Unify:"				],
+    [ "GDBM",    "GDBM_File",       "db.8", O_RDWR|O_CREAT, 0666	],
+    [ "NDBM",    "NDBM_File",       "db.7", O_RDWR|O_CREAT, 0666	],
+    [ "ODBM",    "ODBM_File",       "db.6", O_RDWR|O_CREAT, 0666	],
+    [ "SDBM",    "SDBM_File",       "db.5", O_RDWR|O_CREAT, 0666	],
+    [ "DB_File", "DB_File",         "db.2", O_RDWR|O_CREAT, 0666	],
+    [ "CDB_File","CDB_File",        "db.3"				],
+    [ "Berkeley","BerkeleyDB::Hash", -Filename => "db.4",
+				     -Flags    => $DB_CREATE,		],
+    [ "Redis",   "Redis::Hash",     "dbd_"				],
+    [ "Redis2",  "Redis::Hash",     "dbd2_", encoding => undef		],
+    [ "SQLite",  "Tie::Hash::DBD",  "dbi:SQLite:dbname=db.1"		],
+    [ "Pg",      "Tie::Hash::DBD",  "dbi:Pg:"				],
+    [ "mysql",   "Tie::Hash::DBD",  "dbi:mysql:database=merijn"		],
+    [ "CSV",     "Tie::Hash::DBD",  "dbi:CSV:f_ext=.csv/r;csv_null=1"	],
+    [ "Oracle",  "Tie::Hash::DBD",  "dbi:Oracle:"			],
+    [ "Unify",   "Tie::Hash::DBD",  "dbi:Unify:"			],
     );
 
-unlink $_ for glob ("db.[23]*"), glob ("t_tie*.csv");
+unlink $_ for glob ("db.[0-9]*"), glob ("t_tie*.csv");
 
 foreach my $r (@conf) {
     my ($name, $pkg, @args, %hash) = @$r;
@@ -64,7 +71,10 @@ foreach my $r (@conf) {
 	}
 
     eval { tie %hash, $pkg, @args };
-    $@ and next;
+    if ($@) {
+	warn $@;
+	next;
+	}
 
     foreach my $size (10, 100, 300, 1000, 10000, 100000) {
 
