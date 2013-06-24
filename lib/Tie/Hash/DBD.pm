@@ -105,7 +105,7 @@ sub TIEHASH
 	    RaiseError       => 1,
 	    PrintWarn        => 0,
 	    FetchHashKeyName => "NAME_lc",
-	    }) or croak DBI->errstr;
+	    }) or croak (DBI->errstr);
 
     my $dbt = $dbh->{Driver}{Name} || "no DBI handle";
     my $cnf = $DB{$dbt} or croak "I don't support database '$dbt'";
