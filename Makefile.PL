@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright 2010-2013 H.Merijn Brand
+# Copyright 2010-2014 H.Merijn Brand
 
 require 5.008;
 use strict;
