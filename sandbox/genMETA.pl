@@ -24,6 +24,7 @@ if ($check) {
     $meta->check_encoding ();
     $meta->check_required ();
     $meta->check_minimum ([ "t", "examples", "lib.pm", "Makefile.PL" ]);
+    $meta->done_testing ();
     }
 elsif ($opt_v) {
     $meta->print_yaml ();
@@ -38,7 +39,7 @@ name:                    Tie-Hash-DBD
 version:                 VERSION
 abstract:                Tie plain hashes to DBI interface
 license:                 perl
-author:              
+author:
     - H.Merijn Brand <h.m.brand@xs4all.nl>
 generated_by:            Author
 distribution_type:       module
@@ -49,7 +50,7 @@ provides:
     Tie::Array::DBD:
         file:            lib/Tie/Array/DBD.pm
         version:         VERSION
-requires:     
+requires:
     perl:                5.008
     Carp:                0
     DBI:                 1.613
@@ -60,11 +61,12 @@ test_requires:
     Test::Harness:       0
     Test::More:          0.90
     Time::HiRes:         0
-recommends:     
-    perl:                5.016003
-    DBI:                 1.628
-    DBD::SQLite:         1.37
-    Test::More:          0.98
+recommends:
+    perl:                5.018001
+    DBI:                 1.630
+    DBD::SQLite:         1.40
+test_recommends:
+    Test::More:          1.001002
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          http://repo.or.cz/w/Tie-Hash-DBD.git
