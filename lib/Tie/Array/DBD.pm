@@ -54,6 +54,12 @@ my %DB = (
 	t_val	=> "text",
 	clear	=> "delete from",
 	},
+    Firebird	=> {
+	temp	=> "",
+	t_key	=> "integer not null primary key",
+	t_val	=> "varchar (8192)",
+	clear	=> "delete from",
+	},
     );
 
 sub _create_table

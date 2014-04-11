@@ -13,3 +13,4 @@ sandbox/Talk
 sandbox/db.[0-9]*
 sandbox/speed.csv
 sandbox/speed.txt
+.env*

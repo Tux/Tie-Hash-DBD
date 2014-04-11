@@ -60,6 +60,12 @@ my %DB = (
 	t_val	=> "text",
 	clear	=> "delete from",
 	},
+    Firebird	=> {
+	temp	=> "",
+	t_key	=> "varchar (8192)",
+	t_val	=> "varchar (8192)",
+	clear	=> "delete from",
+	},
     );
 
 sub _create_table
@@ -370,7 +376,8 @@ all by itself, but uses the connection provided in the handle.
 If the first argument is a scalar, it is used as DSN for DBI->connect ().
 
 Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
-DBD::Oracle, and DBD::Unify.
+DBD::Oracle, DBD::Unify, and DBD::Firebird.  Note that due to limitations
+they won't all perform equally well.
 
 DBD::Pg and DBD::SQLite have an unexpected great performance when server
 is the local system. DBD::SQLite is even almost as fast as DB_File.
@@ -494,6 +501,13 @@ approaches that enable you to fit in your own.
 =item *
 
 Note that neither DBD::CSV nor DBD::Unify support C<AutoCommit>.
+
+=iten *
+
+For now, Firebird does not support C<TEXT> (or C<CLOB>) in DBD::Firebird
+at a level required by Tie::Hash::DBD. Neither does it support arbitrary
+length index on C<VARCHAR> fields so it can neither be a primary key nor
+can it be the subject of a (unique) index, hence large sets will be slow
 
 =back
 
