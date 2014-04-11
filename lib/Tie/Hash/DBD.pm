@@ -320,7 +320,7 @@ __END__
 
 =head1 NAME
 
-Tie::Hash::DBD, tie a plain hash to a database table
+Tie::Hash::DBD - tie a plain hash to a database table
 
 =head1 SYNOPSIS
 

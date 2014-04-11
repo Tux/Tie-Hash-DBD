@@ -443,7 +443,7 @@ __END__
 
 =head1 NAME
 
-Tie::Array::DBD, tie a plain array to a database table
+Tie::Array::DBD - tie a plain array to a database table
 
 =head1 SYNOPSIS
 
