@@ -502,7 +502,7 @@ approaches that enable you to fit in your own.
 
 Note that neither DBD::CSV nor DBD::Unify support C<AutoCommit>.
 
-=iten *
+=item *
 
 For now, Firebird does not support C<TEXT> (or C<CLOB>) in DBD::Firebird
 at a level required by Tie::Hash::DBD. Neither does it support arbitrary
