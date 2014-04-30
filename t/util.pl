@@ -54,6 +54,32 @@ sub dsn
     return $dsn;
     } # dsn
 
+sub plan_fail
+{
+    my $type = shift;
+
+    my $reason = DBI->errstr;
+    $reason or ($reason = $@) =~ s/:.*//s;
+
+    if ($type eq "Pg") {
+        # could not connect to server: No such file or directory
+	# \tIs the server running locally and accepting
+	# \tconnections on Unix do ...
+	$reason =~ s{: No such file or directory(\n.*)?$}{}s;
+	}
+    if ($type eq "mysql") {
+	# Can't connect to local MySQL server through socket '/var/run/mysql/mysql.sock' (2)
+	$reason =~ s{(Can't connect to local MySQL server).*}{$1}s;
+	}
+    if ($type eq "Firebird") {
+	# Unsuccessful execution caused by a system error that precludes successful execution of subsequent statements
+	$reason =~ s{Unsuccessful execution caused by a system error.*}{Cannot connect}s;
+	}
+
+    $reason and substr $reason, 0, 0, " - ";
+    plan skip_all => "DBD::$type$reason";
+    } # plan_fail
+
 sub cleanup
 {
     my $type = shift;
