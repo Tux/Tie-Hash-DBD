@@ -20,7 +20,9 @@ else {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
     # could not connect to server: No such file or directory
-    $reason =~ s{: No such file or directory$}{};
+    # \tIs the server running locally and accepting
+    # \tconnections on Unix do ...
+    $reason =~ s{: No such file or directory(\n.*)?$}{}s;
     $reason and substr $reason, 0, 0, " - ";
     plan skip_all => "DBD::$DBD$reason";
     }
