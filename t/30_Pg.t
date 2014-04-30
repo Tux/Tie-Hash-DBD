@@ -19,6 +19,8 @@ if (tied %hash) {
 else {
     my $reason = DBI->errstr;
     $reason or ($reason = $@) =~ s/:.*//s;
+    # could not connect to server: No such file or directory
+    $reason =~ s{: No such file or directory$}{};
     $reason and substr $reason, 0, 0, " - ";
     plan skip_all => "DBD::$DBD$reason";
     }
