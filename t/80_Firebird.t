@@ -14,7 +14,7 @@ cleanup ($DBD);
 eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD) };
 
 if (tied %hash) {
-    print STDERR "# Using ", "DBD::$DBD"->VERSION, "\n";
+    diag "Using DBD::$DBD-", "DBD::$DBD"->VERSION, "\n";
     }
 else {
     my $reason = DBI->errstr;
