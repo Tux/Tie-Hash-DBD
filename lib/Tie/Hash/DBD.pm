@@ -429,6 +429,9 @@ C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
 If you want to preserve Encoding on the hash values, you should use this
 feature.
 
+Also note that this module does not yet support dynamic changes in nested
+structures. See L</Nesting and deep structues>.
+
 =item trh
 
 Use transaction Handles. By default none of the operations is guarded by
