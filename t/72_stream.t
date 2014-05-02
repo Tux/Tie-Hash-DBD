@@ -56,7 +56,7 @@ my %deep = (
     PV  => "string",
     PV8 => "ab\ncd\x{20ac}\t",
     PVM => $!,
-    RV  => \$.,
+    RV  => \$DBD,
     AR  => [ 1..2 ],
     HR  => { key => "value" },
     OBJ => ( bless { auto_diag => 1 }, "Text::CSV_XS" ),

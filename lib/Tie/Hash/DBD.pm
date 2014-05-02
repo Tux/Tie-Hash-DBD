@@ -458,6 +458,8 @@ data is restored. To maintain deep structures, use the streamer option:
 
   tie my %hash, "Tie::Hash::DBD", { str => "Storable" };
 
+Note that changes inside deep structures do not work. See L</TODO>.
+
 =head1 METHODS
 
 =head2 drop ()
@@ -514,6 +516,20 @@ can it be the subject of a (unique) index, hence large sets will be slow
 =head1 TODO
 
 =over 2
+
+=item Update on deep changes
+
+Currently,  nested structures do not get updated when it is an change in
+a deeper part.
+
+  tie my %hash, "Tie::Hash::DBD", $dbh, { str => "Storable" };
+
+  $hash{deep} = {
+      int  => 1,
+      str  => "foo",
+      };
+
+  $hash{deep}{int}++; # No effect :(
 
 =item Documentation
 

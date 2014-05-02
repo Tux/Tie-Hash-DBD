@@ -573,6 +573,8 @@ data is restored. To maintain deep structures, use the streamer option:
 
   tie my @array, "Tie::Array::DBD", { str => "Storable" };
 
+Note that changes inside deep structures do not work. See L</TODO>.
+
 =head1 METHODS
 
 =head2 drop ()
@@ -612,6 +614,20 @@ approaches that enable you to fit in your own.
 =head1 TODO
 
 =over 2
+
+=item Update on deep changes
+
+Currently,  nested structures do not get updated when it is an change in
+a deeper part.
+
+  tie my @array, "Tie::Array::DBD", $dbh, { str => "Storable" };
+
+  @array = (
+      [ 1, "foo" ],
+      [ 2, "bar" ],
+      );
+
+  $array[1][0]++; # No effect :(
 
 =item Documentation
 
