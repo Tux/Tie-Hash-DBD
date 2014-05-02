@@ -657,7 +657,7 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-DBI, Tie::DBI, Tie::Hash, Tie::Hash::DBD
+DBI, Tie::DBI, Tie::Hash, Tie::Hash::DBD, DBM::Deep
 
 =cut
 
