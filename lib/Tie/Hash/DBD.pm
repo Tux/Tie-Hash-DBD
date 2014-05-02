@@ -189,6 +189,7 @@ sub _stream
     $self->{str} or return $val;
 
     $self->{str} eq "Storable" and return nfreeze ({ val => $val });
+    return $val;
     } # _stream
 
 sub _unstream
@@ -198,6 +199,7 @@ sub _unstream
     $self->{str} or return $val;
 
     $self->{str} eq "Storable" and return thaw ($val)->{val};
+    return $val;
     } # _unstream
 
 sub STORE
@@ -402,7 +404,7 @@ be dropped.
 
 If a table name is provided, it will be checked for existence. If found,
 it will be used with the specified C<key> and C<fld>.  Otherwise it will
-be created with C<key> and <fld>,  but it will not be dropped at the end
+be created with C<key> and C<fld>, but it will not be dropped at the end
 of the session.
 
 If a table name is provided, C<AutoCommit> will be "On" for persistence,
@@ -421,7 +423,8 @@ is C<h_value>.
 =item str
 
 Defines the required persistence module. Currently only supports the use
-of C<Storable>. The default is undefined.
+of C<Storable>.  The default is undefined.  Passing unsupported streamer
+module names will be silently ignored.
 
 Note that C<Storable> does not support persistence of perl types C<CODE>, 
 C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
