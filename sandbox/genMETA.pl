@@ -23,7 +23,7 @@ $meta->from_data (<DATA>);
 if ($check) {
     $meta->check_encoding ();
     $meta->check_required ();
-    $meta->check_minimum ([ "t", "examples", "lib.pm", "Makefile.PL" ]);
+    $meta->check_minimum ([ "t", "xt", "examples", "lib.pm", "Makefile.PL" ]);
     $meta->done_testing ();
     }
 elsif ($opt_v) {
