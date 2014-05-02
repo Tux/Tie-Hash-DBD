@@ -2,7 +2,7 @@
 
 # Copyright 2010-2014 H.Merijn Brand
 
-require 5.008;
+require 5.008003;
 use strict;
 
 use ExtUtils::MakeMaker;

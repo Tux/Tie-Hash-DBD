@@ -28,8 +28,11 @@ or get it as a tgz:
 
 =head1 PREREQUISITES
 
-perl5.8 and DBI. Preferably a recent version of DBI and the DBD module
-you are planning to use.
+perl5.8.3 and DBI. Preferably a recent version of DBI and the
+DBD module you are planning to use.
+
+5.8.3 not because of syntax, but because it fails with SQLite
+when used with - the same version of SQLite - under 5.8.2.
 
 =head1 DESCRIPTION
 

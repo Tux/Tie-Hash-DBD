@@ -51,7 +51,7 @@ provides:
         file:            lib/Tie/Array/DBD.pm
         version:         VERSION
 requires:
-    perl:                5.008
+    perl:                5.008003
     Carp:                0
     DBI:                 1.613
     Storable:            0
