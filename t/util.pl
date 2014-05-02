@@ -11,6 +11,9 @@ sub _dsn
     $type eq "Pg"	and return "dbi:Pg:";
     $type eq "CSV"	and return "dbi:CSV:f_ext=.csv/r;csv_null=1";
 
+    my $user   = $ENV{LOGNAME} || $ENV{USER};
+       $user ||= getpwuid $< unless $^O eq "MSWin32";
+
     if ($type eq "Oracle") {
 	my @id = split m{/} => ($ENV{ORACLE_USERID} || "/"), -1;
 	$ENV{DBI_USER} = $id[0];
@@ -24,7 +27,7 @@ sub _dsn
 	}
 
     if ($type eq "mysql") {
-	my $db = $ENV{MYSQLDB} || $ENV{LOGNAME} || scalar getpwuid $<;
+	my $db = $ENV{MYSQLDB} || $user;
 	return "dbi:mysql:database=$db";
 	}
 
@@ -37,7 +40,6 @@ sub _dsn
 	}
 
     if ($type eq "Firebird") {
-	my $user = $ENV{LOGNAME} || scalar getpwuid $<;
 	$ENV{ISC_USER} || $user eq "merijn" or
 	    plan skip_all => "Firebird has no reproducible test yet";
 	$ENV{DBI_USER} = $ENV{ISC_USER}     || $user;
