@@ -18,7 +18,7 @@ tied %hash or plan_fail ($DBD);
 
 ok (tied %hash,			"Hash tied");
 
-foreach my $size (10, 100, 1000) {
+foreach my $size (10) { # Too slow for now. Maybe later, 100, 1000) {
     my %plain = map { ( $_ => $_ ) }
 		map { ( $_, pack "l", $_ ) }
 		-($size - 1) .. $size;
