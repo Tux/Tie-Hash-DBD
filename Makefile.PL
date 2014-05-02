@@ -41,8 +41,15 @@ package MY;
 
 sub postamble
 {
+    my $make_sep = $^O eq "VMS" ? "," : "";
+    my $min_vsn = ($] >= 5.010 && -d "xt" && ($ENV{AUTOMATED_TESTING} || 0) != 1)
+	? join "\n" =>
+	    'test ::',
+	    '	-@env TEST_FILES="xt/*.t" make -e test_dynamic',
+	    ''
+	: "";
     join "\n" =>
-	'cover test_cover:',
+	'cover $make_sep test_cover:',
 	'	ccache -C',
 	'	cover -test',
 	'',
@@ -63,5 +70,6 @@ sub postamble
 	'	-@mv -f $(DISTVNAME).tar.gz $(DISTVNAME).tgz',
 	'	-@cpants_lint.pl $(DISTVNAME).tgz',
 	'	-@rm -f Debian_CPANTS.txt',
-	'';
+	'',
+	$min_vsn;
     } # postamble

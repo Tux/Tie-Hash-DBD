@@ -1,6 +1,7 @@
 \.git
 \.releaserc
 \.aspell\.local\.pws
+xt/
 blib/
 cover_db/
 sandbox/

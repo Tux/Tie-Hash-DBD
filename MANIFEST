@@ -5,8 +5,6 @@ lib/Tie/Array/DBD.pm
 lib/Tie/Hash/DBD.pm
 README
 examples/copy.pl
-t/00_pod.t
-t/01_pod.t
 t/10_load.t
 t/20_SQLite.t
 t/21_bulk.t
