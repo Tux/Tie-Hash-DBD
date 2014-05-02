@@ -554,8 +554,8 @@ C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
 If you want to preserve Encoding on the array values, you should use this
 feature.
 
-Also note that this module does not yet support dynamic changes in nested
-structures. See L</Nesting and deep structues>.
+Also note that this module does not yet support dynamic deep structures.
+See L</Nesting and deep structues>.
 
 =back
 
