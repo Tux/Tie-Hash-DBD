@@ -58,6 +58,10 @@ is ($hash{$anr},  42,					"Binary key");
 ok ($hash{$anr} = $anr,					"Binary key and value");
 is ($hash{$anr},  $anr,					"Binary key and value");
 
+my $data = pack "L>A20A*", time, "#irc", "A message";
+ok ($hash{tux} = $data,					"Binary from pack");
+is ($hash{tux},  $data,					"Binary from pack");
+
 # clear
 %hash = ();
 $SQL::Statement::VERSION =~ m/^1.(2[0-9]|30)$/ or

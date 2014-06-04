@@ -24,9 +24,13 @@ my %data = (
     NV  => 3.14159265358979,
     PV  => "string",
     );
+my $data = pack "L>A20A*", time, "#irc", "A message";
 
 ok (%hash = %data,			"Set data");
 is_deeply (\%hash, \%data,		"Get data");
+
+ok ($hash{tux} = $data,			"Set binary from pack");
+is ($hash{tux},  $data,			"Get binary from pack");
 
 ok (untie %hash,			"Untie");
 is (tied %hash, undef,			"Untied");
@@ -39,7 +43,9 @@ tie %hash, "Tie::Hash::DBD", _dsn ($DBD), { tbl => $tbl };
 
 ok (tied %hash,				"Hash re-tied");
 
+is (delete $hash{tux}, $data,		"Get binary from pack");
 is_deeply (\%hash, \%data,		"Get data again");
+
 ok ((tied %hash)->drop,			"Make table temp");
 
 # clear
