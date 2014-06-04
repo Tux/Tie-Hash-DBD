@@ -80,13 +80,13 @@ sub _create_table
 	};
     $exists and return;	# Table already exists
 
-    my ($temp, $t_key, $t_val) = @{$DB{$dbt}}{qw( temp t_key t_val )};
+    my $temp = $DB{$dbt}{temp};
     $cnf->{tmp} or $temp = "";
     local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
     $dbh->do (
 	"create $temp table $cnf->{tbl} (".
-	    "$cnf->{f_k} $t_key,".
-	    "$cnf->{f_v} $t_val)"
+	    "$cnf->{f_k} $cnf->{ktp},".
+	    "$cnf->{f_v} $cnf->{vtp})"
 	);
     $dbt eq "Unify" and $dbh->commit;
     } # create table
@@ -123,6 +123,8 @@ sub TIEARRAY
 	tbl => undef,
 	tmp => $tmp,
 	str => undef,
+	ktp => $cnf->{t_key},
+	vtp => $cnf->{t_val},
 	};
 
     if ($opt) {
@@ -132,6 +134,7 @@ sub TIEARRAY
 	$opt->{fld} and $f_v      = $opt->{fld};
 	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
 	$opt->{str} and $h->{str} = $opt->{str};
+	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
 	}
 
     $h->{f_k} = $f_k;
@@ -541,6 +544,11 @@ C<h_key>.
 
 Defines the name of the value field in the database table.   The default
 is C<h_value>.
+
+=item vtp
+
+Defines the type of the fld field in the database table.  The default is
+depending on the underlying database and most likely some kind of BLOB.
 
 =item str
 

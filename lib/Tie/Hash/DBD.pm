@@ -86,13 +86,13 @@ sub _create_table
 	};
     $exists and return;	# Table already exists
 
-    my ($temp, $t_key, $t_val) = @{$DB{$dbt}}{qw( temp t_key t_val )};
+    my $temp = $DB{$dbt}{temp};
     $cnf->{tmp} or $temp = "";
     local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
     $dbh->do (
 	"create $temp table $cnf->{tbl} (".
-	    "$cnf->{f_k} $t_key,".
-	    "$cnf->{f_v} $t_val)"
+	    "$cnf->{f_k} $cnf->{ktp},".
+	    "$cnf->{f_v} $cnf->{vtp})"
 	);
     $dbt eq "Unify" and $dbh->commit;
     } # create table
@@ -131,6 +131,8 @@ sub TIEHASH
 	str => undef,
 	asc => $cnf->{k_asc} || 0,
 	trh => 0,
+	ktp => $cnf->{t_key},
+	vtp => $cnf->{t_val},
 	};
 
     if ($opt) {
@@ -141,6 +143,8 @@ sub TIEHASH
 	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
 	$opt->{str} and $h->{str} = $opt->{str};
 	$opt->{trh} and $h->{trh} = $opt->{trh};
+	$opt->{ktp} and $h->{ktp} = $opt->{ktp};
+	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
 	}
 
     $h->{f_k} = $f_k;
@@ -415,10 +419,20 @@ unless you provide a true C<trh> attribute.
 Defines the name of the key field in the database table.  The default is
 C<h_key>.
 
+=item ktp
+
+Defines the type of the key field in the database table.  The default is
+depending on the underlying database. Probably unwise to change.
+
 =item fld
 
 Defines the name of the value field in the database table.   The default
 is C<h_value>.
+
+=item vtp
+
+Defines the type of the fld field in the database table.  The default is
+depending on the underlying database and most likely some kind of BLOB.
 
 =item str
 
