@@ -470,6 +470,22 @@ flags and use the streamer option:
 
   tie my %hash, "Tie::Hash::DBD", { str => "Storable" };
 
+If you do not want the performance impact of Storable just to be able to
+store and retrieve UTF-8 values, there are two ways to do so:
+
+  # Use utf-8 from database
+  tie my %hash, "Tie::Hash::DBD", "dbi:Pg:", { vtp => "text" };
+  $hash{foo} = "The teddybear costs \x{20ac} 45.95";
+
+  # use Encode
+  tie my %hash, "Tie::Hash::DBD", "dbi:Pg:";
+  $hash{foo} = encode "UTF-8", "The teddybear costs \x{20ac} 45.95";
+
+Note  that using Encode will allow other binary data too where using the
+database encoding does not:
+
+  $hash{foo} = pack "L>A*", time, encode "UTF-8", "Price: \x{20ac} 45.95";
+
 =head2 Nesting and deep structures
 
 C<Tie::Hash::DBD> stores keys and values as binary data. This means that

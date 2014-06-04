@@ -579,6 +579,22 @@ flags and use the streamer option:
 
   tie my @array, "Tie::Array::DBD", { str => "Storable" };
 
+If you do not want the performance impact of Storable just to be able to
+store and retrieve UTF-8 values, there are two ways to do so:
+
+  # Use utf-8 from database
+  tie my @array, "Tie::Array::DBD", "dbi:Pg:", { vtp => "text" };
+  $array[2] = "The teddybear costs \x{20ac} 45.95";
+
+  # use Encode
+  tie my @array, "Tie::Array::DBD", "dbi:Pg:";
+  $array[2] = encode "UTF-8", "The teddybear costs \x{20ac} 45.95";
+
+Note  that using Encode will allow other binary data too where using the
+database encoding does not:
+
+  $array[2] = pack "L>A*", time, encode "UTF-8", "Price: \x{20ac} 45.95";
+
 =head2 Nesting and deep structures
 
 C<Tie::Array::DBD> stores values as binary data. This means that
