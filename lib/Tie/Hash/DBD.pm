@@ -1,6 +1,6 @@
 package Tie::Hash::DBD;
 
-our $VERSION = "0.13";
+our $VERSION = "0.14";
 
 use strict;
 use warnings;
@@ -49,7 +49,7 @@ my %DB = (
     SQLite	=> {
 	temp	=> "temporary",
 	t_key	=> "text primary key",
-	t_val	=> "text",
+	t_val	=> "blob",
 	clear	=> "delete from",
 	pbind	=> 0, # TYPEs in SQLite are text, bind_param () needs int
 	autoc	=> 0,
@@ -207,7 +207,7 @@ sub STORE
     my ($self, $key, $value) = @_;
     my $k = $self->{asc} ? unpack "H*", $key : $key;
     my $v = $self->_stream ($value);
-    $self->{trh} and $self->{dbh}->begin_work;
+    $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
     my $r = $self->EXISTS ($key)
 	? $self->{upd}->execute ($v, $k)
 	: $self->{ins}->execute ($k, $v);
@@ -219,7 +219,7 @@ sub DELETE
 {
     my ($self, $key) = @_;
     $self->{asc} and $key = unpack "H*", $key;
-    $self->{trh} and $self->{dbh}->begin_work;
+    $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch;
     unless ($r) {
@@ -258,7 +258,7 @@ sub FETCH
 sub FIRSTKEY
 {
     my $self = shift;
-    $self->{trh} and $self->{dbh}->begin_work;
+    $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
     $self->{key} = $self->{dbh}->selectcol_arrayref ("select $self->{f_k} from $self->{tbl}");
     $self->{trh} and $self->{dbh}->commit;
     unless (@{$self->{key}}) {

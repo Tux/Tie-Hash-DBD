@@ -1,6 +1,6 @@
 package Tie::Array::DBD;
 
-our $VERSION = "0.13";
+our $VERSION = "0.14";
 
 use strict;
 use warnings;
@@ -43,7 +43,7 @@ my %DB = (
     SQLite	=> {
 	temp	=> "temporary",
 	t_key	=> "integer not null primary key",
-	t_val	=> "text",
+	t_val	=> "blob",
 	clear	=> "delete from",
 	pbind	=> 0, # TYPEs in SQLite are text, bind_param () needs int
 	autoc	=> 0,
