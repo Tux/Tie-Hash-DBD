@@ -5,6 +5,7 @@ DBI
 DSN
 Firebird
 fld
+ktp
 mixin
 mixins
 Mixins
@@ -14,3 +15,4 @@ str
 tbl
 tieing
 trh
+vtp
