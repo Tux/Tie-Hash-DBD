@@ -1,5 +1,7 @@
-0.14	- 28 May 2014, H.Merijn Brand
+0.14	- 04 Jun 2014, H.Merijn Brand
     - SQLite does not like begin_work with trh => 1
+    - Support other database field types from tie
+    - Test more binary data (without Storable)
 
 0.13	- 02 May 2014, H.Merijn Brand
     * Shorten connect failure messages in test
