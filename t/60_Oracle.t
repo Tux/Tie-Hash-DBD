@@ -58,7 +58,7 @@ is ($hash{$anr},  42,					"Binary key");
 ok ($hash{$anr} = $anr,					"Binary key and value");
 is ($hash{$anr},  $anr,					"Binary key and value");
 
-my $data = pack "L>A20A*", time, "#irc", "A message";
+my $data = _bindata ();
 ok ($hash{tux} = $data,					"Binary from pack");
 is ($hash{tux},  $data,					"Binary from pack");
 

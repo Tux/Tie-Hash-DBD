@@ -24,7 +24,7 @@ my %data = (
     NV  => 3.14159265358979,
     PV  => "string",
     );
-my $data = pack "L>A20A*", time, "#irc", "A message";
+my $data = _bindata ();
 
 ok (%hash = %data,			"Set data");
 is_deeply (\%hash, \%data,		"Get data");

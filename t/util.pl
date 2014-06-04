@@ -3,6 +3,15 @@
 use strict;
 use warnings;
 
+use Encode qw( encode decode );
+
+my $data;
+sub _bindata
+{
+    $data ||= pack "L>A20A*", time, "#sys", encode "UTF-8", "Value \x{20ac}";
+    return $data;
+    } # _bindata
+
 sub _dsn
 {
     my $type = shift;
@@ -47,7 +56,7 @@ sub _dsn
 	    plan skip_all => "Not a testable Firebird env";
 	$ENV{DBI_USER} = $ENV{ISC_USER}     || $user;
 	$ENV{DBI_PASS} = $ENV{ISC_PASSWORD} || "";
-	return "dbi:Firebird:db=$user";
+	return "dbi:Firebird:";
 	}
     } # _dsn
 
