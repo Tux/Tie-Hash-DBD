@@ -170,7 +170,7 @@ sub TIEHASH
     $h->{ctv} = $dbh->prepare ("select count(*) from $tbl where $f_k = ?");
 
     unless (exists $cnf->{pbind} && !$cnf->{pbind}) {
-	my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl");
+	my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl where 0 = 1");
 	$sth->execute;
 	my @typ = @{$sth->{TYPE}};
 
