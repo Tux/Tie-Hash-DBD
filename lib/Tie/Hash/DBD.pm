@@ -567,6 +567,12 @@ a deeper part.
 
   $hash{deep}{int}++; # No effect :(
 
+=item Investigate Postgres' hstore
+
+L<C<hstore>|http://www.postgresql.org/docs/current/static/hstore.html>
+is a possible alternative storage approach when using  Postgres.  See if
+it is easy to implement and brings significant performance gain.
+
 =item Documentation
 
 Better document what the implications are of storing  I<data> content in

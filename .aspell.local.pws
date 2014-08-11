@@ -1,18 +1,22 @@
-personal_ws-1.1 en 15 
+personal_ws-1.1 en 21 
 CLOB
 DBD
 DBI
 DSN
 Firebird
 fld
+hstore
 ktp
 mixin
 mixins
 Mixins
 plugins
+Postgres
 Storable
 str
 tbl
 tieing
 trh
+UTF
+UTF8
 vtp

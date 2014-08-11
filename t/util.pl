@@ -16,7 +16,7 @@ sub _dsn
 {
     my $type = shift;
 
-    $type eq "SQLite"	and return "dbi:SQLite:dbname=db.3";
+    $type eq "SQLite"	and return "dbi:SQLite:db.3";
     $type eq "Pg"	and return "dbi:Pg:";
     $type eq "CSV"	and return "dbi:CSV:f_ext=.csv/r;csv_null=1";
 
