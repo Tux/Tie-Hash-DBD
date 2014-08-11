@@ -1,11 +1,10 @@
-personal_ws-1.1 en 21 
+personal_ws-1.1 en 20 
 CLOB
 DBD
 DBI
 DSN
 Firebird
 fld
-hstore
 ktp
 mixin
 mixins

@@ -2,7 +2,6 @@
     - SQLite does not like begin_work with trh => 1
     - Support other database field types from tie
     - Test more binary data (without Storable)
-    - Show the intent to look at Postgres' hstore
 
 0.13	- 02 May 2014, H.Merijn Brand
     * Shorten connect failure messages in test
