@@ -383,7 +383,7 @@ If the first argument is a scalar, it is used as DSN for DBI->connect ().
 
 Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
 DBD::Oracle, DBD::Unify, and DBD::Firebird.  Note that due to limitations
-they won't all perform equally well.
+they won't all perform equally well. Firebird is not tested anymore.
 
 DBD::Pg and DBD::SQLite have an unexpected great performance when server
 is the local system. DBD::SQLite is even almost as fast as DB_File.
@@ -545,7 +545,9 @@ Note that neither DBD::CSV nor DBD::Unify support C<AutoCommit>.
 For now, Firebird does not support C<TEXT> (or C<CLOB>) in DBD::Firebird
 at a level required by Tie::Hash::DBD. Neither does it support arbitrary
 length index on C<VARCHAR> fields so it can neither be a primary key nor
-can it be the subject of a (unique) index, hence large sets will be slow
+can it be the subject of a (unique) index hence large sets will be slow.
+
+Firebird support is stalled.
 
 =back
 

@@ -1,7 +1,8 @@
-0.14	- 11 Aug 2014, H.Merijn Brand
+0.14	- 13 Aug 2014, H.Merijn Brand
     - SQLite does not like begin_work with trh => 1
     - Support other database field types from tie
     - Test more binary data (without Storable)
+    - Note I gave up on Firebird
 
 0.13	- 02 May 2014, H.Merijn Brand
     * Shorten connect failure messages in test

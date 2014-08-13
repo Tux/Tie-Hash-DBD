@@ -507,7 +507,8 @@ all by itself, but uses the connection provided in the handle.
 If the first argument is a scalar, it is used as DSN for DBI->connect ().
 
 Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
-DBD::Oracle, and DBD::Unify.
+DBD::Oracle, DBD::Unify, and DBD::Firebird.  Note that due to limitations
+they won't all perform equally well. Firebird is not tested anymore.
 
 DBD::Pg and DBD::SQLite have an unexpected great performance when server
 is the local system. DBD::SQLite is even almost as fast as DB_File.
@@ -638,6 +639,17 @@ C<Storable> does not support persistence of perl types C<IO>, C<REGEXP>,
 C<CODE>, C<FORMAT>, and C<GLOB>.  Future extensions might implement some
 alternative streaming modules, like C<Data::Dump::Streamer> or use mixin
 approaches that enable you to fit in your own.
+
+=item *
+
+Note that neither DBD::CSV nor DBD::Unify support C<AutoCommit>.
+
+=item *
+
+For now, Firebird does not support C<TEXT> (or C<CLOB>) in DBD::Firebird
+at a level required by Tie::Array::DBD.
+
+Firebird support is stalled.
 
 =back
 

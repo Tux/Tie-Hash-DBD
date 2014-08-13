@@ -52,10 +52,14 @@ sub _dsn
 	}
 
     if ($type eq "Firebird") {
+	# use flamerobin for DB administration
+	# I gave up on this. Too hard to make it work. Connection always fails
 	$ENV{ISC_USER} || $user eq "merijn" or
 	    plan skip_all => "Not a testable Firebird env";
-	$ENV{DBI_USER} = $ENV{ISC_USER}     || $user;
-	$ENV{DBI_PASS} = $ENV{ISC_PASSWORD} || "";
+	$ENV{ISC_USER}     ||= $user;
+	$ENV{ISC_PASSWORD} ||= "";
+	$ENV{DBI_USER} = $ENV{ISC_USER};
+	$ENV{DBI_PASS} = $ENV{ISC_PASSWORD};
 	return "dbi:Firebird:";
 	}
     } # _dsn
