@@ -15,7 +15,9 @@ eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD) };
 
 tied %hash or plan_fail ($DBD);
 
-diag "Using DBD::$DBD-", "DBD::$DBD"->VERSION, "\n";
+diag "Using DBD::CSV-",     "DBD::CSV"->VERSION,
+         ", DBD::File-",    "DBD::File"->VERSION,
+         ", Text::CSV_XS-", "Text::CSV_XS"->VERSION, "\n";
 
 ok (tied %hash,						"Hash tied");
 
