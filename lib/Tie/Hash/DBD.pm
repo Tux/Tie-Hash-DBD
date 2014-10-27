@@ -388,9 +388,15 @@ they won't all perform equally well. Firebird is not tested anymore.
 DBD::Pg and DBD::SQLite have an unexpected great performance when server
 is the local system. DBD::SQLite is even almost as fast as DB_File.
 
-The current implementation appears to be extremely slow CSV, as expected,
-mysql, and Unify. For Unify and mysql that is because these do not allow
-indexing on the key field so they cannot be set to be primary key.
+The current implementation appears to be extremely slow for CSV, as
+expected, mysql, and Unify. For Unify and mysql that is because these do
+not allow indexing on the key field so they cannot be set to be primary
+key.
+
+When using DBD::CSV with Text::CSV_XS version 1.02 or newer, it might be
+a good idea to disable utf8 encoding:
+
+ "dbi:CSV:f_ext=.csv/r;csv_null=1;csv_decode_utf8=0"
 
 =head2 Options
 

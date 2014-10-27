@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 use Encode qw( encode decode );
+my $xsv = 0;
+BEGIN { require Text::CSV_XS; $xsv = $Text::CSV_XS::VERSION; };
 
 my $data;
 sub _bindata
@@ -18,7 +20,12 @@ sub _dsn
 
     $type eq "SQLite"	and return "dbi:SQLite:db.3";
     $type eq "Pg"	and return "dbi:Pg:";
-    $type eq "CSV"	and return "dbi:CSV:f_ext=.csv/r;csv_null=1";
+
+    if ($type eq "CSV") {
+	my $dsn = "dbi:CSV:f_ext=.csv/r;csv_null=1";
+	$xsv > 1.01 and $dsn .= ";csv_decode_utf8=0";
+	return $dsn;
+	}
 
     # We assume user "0" is illegal
     my $user   = $ENV{LOGNAME} || $ENV{USER};
