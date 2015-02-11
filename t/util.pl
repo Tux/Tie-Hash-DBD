@@ -18,7 +18,8 @@ sub _dsn
 {
     my $type = shift;
 
-    $type eq "SQLite"	and return "dbi:SQLite:db.3";
+    $type eq "SQLite"	and return "dbi:SQLite:dbname=db.3";
+#   $type eq "SQLite"	and return "dbi:SQLite:dbname=:memory:";
     $type eq "Pg"	and return "dbi:Pg:";
 
     if ($type eq "CSV") {
