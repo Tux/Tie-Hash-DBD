@@ -12,7 +12,8 @@ my %hash;
 my $DBD = "CSV";
 cleanup ($DBD);
 my $tbl = "t_tie_$$"."_persist";
-eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD), { tbl => $tbl } };
+my $dsn = dsn ($DBD);
+eval { tie %hash, "Tie::Hash::DBD", $dsn, { tbl => $tbl } };
 
 tied %hash or plan_fail ($DBD);
 
@@ -24,7 +25,7 @@ my %data = (
     NV  => 3.14159265358979,
     PV  => "string",
     );
-my $data = _bindata ();
+my $data = $dsn =~ m/utf8/ ? _bindata () : "123\x{ff}";
 
 ok (%hash = %data,			"Set data");
 is_deeply (\%hash, \%data,		"Get data");

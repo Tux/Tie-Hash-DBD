@@ -4,8 +4,6 @@ use strict;
 use warnings;
 
 use Encode qw( encode decode );
-my $xsv = 0;
-BEGIN { require Text::CSV_XS; $xsv = $Text::CSV_XS::VERSION; };
 
 my $data;
 sub _bindata
@@ -23,8 +21,10 @@ sub _dsn
     $type eq "Pg"	and return "dbi:Pg:";
 
     if ($type eq "CSV") {
+	my $xsv = eval q{use Text::CSV_XS; $Text::CSV_XS::VERSION; } || 0;
+	my $dbv = eval q{use DBD::CSV;     $DBD::CSV::VERSION;     } || 0;
 	my $dsn = "dbi:CSV:f_ext=.csv/r;csv_null=1";
-	$xsv > 1.01 and $dsn .= ";csv_decode_utf8=0";
+	$xsv > 1.01 && $dbv > 0.47 and $dsn .= ";csv_decode_utf8=0";
 	return $dsn;
 	}
 

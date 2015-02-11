@@ -519,7 +519,7 @@ not allow indexing on the key field so they cannot be set to be primary
 key.
 
 When using DBD::CSV with Text::CSV_XS version 1.02 or newer, it might be
-a good idea to disable utf8 encoding:
+wise to disable utf8 encoding (only supported as of DBD::CSV-0.48):
 
  "dbi:CSV:f_ext=.csv/r;csv_null=1;csv_decode_utf8=0"
 

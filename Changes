@@ -5,6 +5,7 @@
     * Note I gave up on Firebird
     * Up copyright to 2015
     * Move repo to github
+    * Make utf8/data test for CSV reliable
 
 0.13	- 02 May 2014, H.Merijn Brand
     * Shorten connect failure messages in test
