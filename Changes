@@ -1,9 +1,10 @@
-0.14	- 01 Jan 2015, H.Merijn Brand
-    - SQLite does not like begin_work with trh => 1
-    - Support other database field types from tie
-    - Test more binary data (without Storable)
-    - Note I gave up on Firebird
-    - Up copyright to 2015
+0.14	- 11 Feb 2015, H.Merijn Brand
+    * SQLite does not like begin_work with trh => 1
+    * Support other database field types from tie
+    * Test more binary data (without Storable)
+    * Note I gave up on Firebird
+    * Up copyright to 2015
+    * Move repo to github
 
 0.13	- 02 May 2014, H.Merijn Brand
     * Shorten connect failure messages in test
