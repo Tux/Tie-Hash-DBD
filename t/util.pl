@@ -8,7 +8,7 @@ use Encode qw( encode decode );
 my $data;
 sub _bindata
 {
-    $data ||= pack "L>A20A*", time, "#sys", encode "UTF-8", "Value \x{20ac}";
+    $data ||= pack "LA20A*", time, "#sys", encode "UTF-8", "Value \x{20ac}";
     return $data;
     } # _bindata
 

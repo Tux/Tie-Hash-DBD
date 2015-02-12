@@ -1,3 +1,6 @@
+0.15	- 12 Feb 2015, H.Merijn Brand
+    - Test used pack format "L>", wich is supported only in perl-5.10+
+
 0.14	- 11 Feb 2015, H.Merijn Brand
     * SQLite does not like begin_work with trh => 1
     * Support other database field types from tie
