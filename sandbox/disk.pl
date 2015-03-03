@@ -59,14 +59,14 @@ foreach my $r (@conf) {
 
     if ($name eq "Oracle") {
 	-d ($ENV{ORACLE_HOME} || "\x01") or next;
-	$ENV{DBI_USER} = "PROLEP";
-	$ENV{DBI_PASS} = "PROLEP";
+	$ENV{DBI_USER} = "PROBEV";
+	$ENV{DBI_PASS} = "PROBEV";
 	}
     if ($name eq "Unify") {
 	-d ($ENV{UNIFY}  || "\x01") or next;
 	-d ($ENV{DBPATH} || "\x01") or next;
-	$ENV{USCHEMA}  = "PROLEP";
-	$ENV{DBI_USER} = "PROLEP";
+	$ENV{USCHEMA}  = "PROBEV";
+	$ENV{DBI_USER} = "PROBEV";
 	$ENV{DBI_PASS} = undef;
 	}
 
