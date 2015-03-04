@@ -11,12 +11,15 @@ perl:
 addons:
   postgresql: "9.3"
 before_script:
-  - psql -c 'create database travis_ci_test;' -U postgres
+  - psql -c 'create database travis;' -U postgres
 test:
   adapter: postgresql
-  database: travis_ci_test
+  database: travis
   username: postgres
 env:
   - AUTOMATED_TESTING=1
 install:
-  - cpanm --quiet Time::HiRes DBI DBD::SQLite DBD::CSV DBD::Pg
+  - cpanm --quiet Time::HiRes DBI
+  - cpanm --quiet DBD::SQLite || true
+  - cpanm --quiet DBD::CSV    || true
+  - cpanm --quiet DBD::Pg     || true
