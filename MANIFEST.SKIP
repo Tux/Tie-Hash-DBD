@@ -1,6 +1,7 @@
 \.git
 \.releaserc
 \.aspell\.local\.pws
+\.travis.yml
 xt/
 blib/
 cover_db/
