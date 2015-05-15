@@ -11,7 +11,7 @@ require "t/util.pl";
 my %hash;
 my $DBD = "Pg";
 cleanup ($DBD);
-my $tbl = "t_tie_$$"."_persist";
+my $tbl = "t_tie_36_$$"."_persist";
 eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD), { tbl => $tbl } };
 
 tied %hash or plan_fail ($DBD);

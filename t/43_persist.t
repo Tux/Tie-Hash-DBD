@@ -11,7 +11,7 @@ require "t/util.pl";
 my %hash;
 my $DBD = "CSV";
 cleanup ($DBD);
-my $tbl = "t_tie_$$"."_persist";
+my $tbl = "t_tie_43_$$"."_persist";
 my $dsn = dsn ($DBD);
 eval { tie %hash, "Tie::Hash::DBD", $dsn, { tbl => $tbl } };
 
