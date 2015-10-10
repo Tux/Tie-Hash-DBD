@@ -13,6 +13,7 @@ perl:
 addons:
   postgresql: "9.3"
 before_script:
+  - psql -c 'drop   database travis;' -U postgres || true
   - psql -c 'create database travis;' -U postgres
 test:
   adapter: postgresql
