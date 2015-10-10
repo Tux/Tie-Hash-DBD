@@ -62,9 +62,9 @@ test_requires:
     Test::More:          0.90
     Time::HiRes:         0
 recommends:
-    DBI:                 1.633
+    DBI:                 1.634
     DBD::SQLite:         1.48
-    DBD::Pg:             3.5.1
+    DBD::Pg:             3.5.3
     DBD::CSV:            0.48
 test_recommends:
     Test::More:          1.001014

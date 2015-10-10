@@ -1,5 +1,7 @@
-0.16	- 18 Aug 2015, H.Merijn Brand
+0.16	- 10 Oct 2015, H.Merijn Brand
     * Add CONTRIBUTING.md
+    * Testing tables include test number
+    * META changes from QAH
 
 0.15	- 12 Feb 2015, H.Merijn Brand
     * Test used pack format "L>", wich is supported only in perl-5.10+
