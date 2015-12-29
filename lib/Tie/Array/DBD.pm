@@ -1,6 +1,6 @@
 package Tie::Array::DBD;
 
-our $VERSION = "0.16";
+our $VERSION = "0.17";
 
 use strict;
 use warnings;
@@ -56,7 +56,7 @@ my %DB = (
 	},
     Firebird	=> {
 	temp	=> "",
-	t_key	=> "integer not null primary key",
+	t_key	=> "integer primary key",
 	t_val	=> "varchar (8192)",
 	clear	=> "delete from",
 	},

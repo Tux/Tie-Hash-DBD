@@ -61,11 +61,10 @@ sub _dsn
 
     if ($type eq "Firebird") {
 	# use flamerobin for DB administration
+	# Default pass for SYSDBA is "masterkey"
 	# I gave up on this. Too hard to make it work. Connection always fails
-	$ENV{ISC_USER} || $user eq "merijn" or
-	    plan skip_all => "Not a testable Firebird env";
-	$ENV{ISC_USER}     ||= $user;
-	$ENV{ISC_PASSWORD} ||= "";
+	$ENV{ISC_USER}     ||= "SYSDBA";
+	$ENV{ISC_PASSWORD} ||= "masterkey";
 	$ENV{DBI_USER} = $ENV{ISC_USER};
 	$ENV{DBI_PASS} = $ENV{ISC_PASSWORD};
 	return "dbi:Firebird:";
