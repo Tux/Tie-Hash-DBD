@@ -67,7 +67,7 @@ recommends:
     DBD::Pg:             3.5.3
     DBD::CSV:            0.49
 test_recommends:
-    Test::More:          1.302019
+    Test::More:          1.302035
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          https://github.com/Tux/Tie-Hash-DBD
