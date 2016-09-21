@@ -34,6 +34,8 @@ use Time::HiRes qw( gettimeofday tv_interval );
 my %t;
 
 my @conf = (
+    [ "Native",  undef,             undef				],
+
     [ "GDBM",    "GDBM_File",       "db.8", O_RDWR|O_CREAT, 0666	],
     [ "NDBM",    "NDBM_File",       "db.7", O_RDWR|O_CREAT, 0666	],
     [ "ODBM",    "ODBM_File",       "db.6", O_RDWR|O_CREAT, 0666	],
@@ -70,10 +72,12 @@ foreach my $r (@conf) {
 	$ENV{DBI_PASS} = undef;
 	}
 
-    eval { tie %hash, $pkg, @args };
-    if ($@) {
-	warn $@;
-	next;
+    if ($pkg) {
+	eval { tie %hash, $pkg, @args };
+	if ($@) {
+	    warn $@;
+	    next;
+	    }
 	}
 
     foreach my $size (10, 100, 300, 1000, 10000, 100000) {
