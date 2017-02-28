@@ -1,6 +1,6 @@
-0.17	- 12 May 2016, H.Merijn Brand
-    * It's 2016
+0.17	- 28 Feb 2017, H.Merijn Brand
     * Tested with perl-5.24.0
+    * Fix tests for perl without dot in @INC
 
 0.16	- 10 Oct 2015, H.Merijn Brand
     * Add CONTRIBUTING.md
