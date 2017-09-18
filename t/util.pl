@@ -64,6 +64,7 @@ sub _dsn {
 	# I gave up on this. Too hard to make it work. Connection always fails
 	$ENV{ISC_USER}     ||= "SYSDBA";
 	$ENV{ISC_PASSWORD} ||= "masterkey";
+	$ENV{ISC_DATABASE} ||= ""; # Prevent warnings in Firebird.pm
 	$ENV{DBI_USER} = $ENV{ISC_USER};
 	$ENV{DBI_PASS} = $ENV{ISC_PASSWORD};
 	return "dbi:Firebird:";
