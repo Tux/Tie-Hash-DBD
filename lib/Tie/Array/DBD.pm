@@ -62,8 +62,7 @@ my %DB = (
 	},
     );
 
-sub _create_table
-{
+sub _create_table {
     my ($cnf, $tmp) = @_;
     $cnf->{tmp} = $tmp;
 
@@ -91,8 +90,7 @@ sub _create_table
     $dbt eq "Unify" and $dbh->commit;
     } # create table
 
-sub TIEARRAY
-{
+sub TIEARRAY {
     my $pkg = shift;
     my $usg = qq{usage: tie \@a, "$pkg", \$dbh [, { tbl => "tbl", key => "f_key", fld => "f_value" }];};
     my $dsn = shift or croak $usg;
@@ -176,8 +174,7 @@ sub TIEARRAY
     bless $h, $pkg;
     } # TIEARRAY
 
-sub _stream
-{
+sub _stream {
     my ($self, $val) = @_;
     defined $val or return undef;
     $self->{str} or return $val;
@@ -186,8 +183,7 @@ sub _stream
     return $val;
     } # _stream
 
-sub _unstream
-{
+sub _unstream {
     my ($self, $val) = @_;
     defined $val or return undef;
     $self->{str} or return $val;
@@ -196,8 +192,7 @@ sub _unstream
     return $val;
     } # _unstream
 
-sub _setmax
-{
+sub _setmax {
     my $self = shift;
     my $sth = $self->{dbh}->prepare ("select max($self->{f_k}) from $self->{tbl}");
     $sth->execute;
@@ -210,8 +205,7 @@ sub _setmax
     $self->{max};
     } # _setmax
 
-sub STORE
-{
+sub STORE {
     my ($self, $key, $value) = @_;
     my $v = $self->_stream ($value);
     $self->EXISTS ($key)
@@ -220,8 +214,7 @@ sub STORE
     $key > $self->{max} and $self->{max} = $key;
     } # STORE
 
-sub DELETE
-{
+sub DELETE {
     my ($self, $key) = @_;
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
@@ -230,31 +223,27 @@ sub DELETE
     $self->_unstream ($r->[0]);
     } # DELETE
 
-sub STORESIZE
-{
+sub STORESIZE {
     my ($self, $size) = @_; # $size = $# + 1
     $size--;
     $self->{dbh}->do ("delete from $self->{tbl} where $self->{f_k} > $size");
     $self->{max} = $size;
     } # STORESIZE
 
-sub CLEAR
-{
+sub CLEAR {
     my $self = shift;
     $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     $self->{max} = -1;
     } # CLEAR
 
-sub EXISTS
-{
+sub EXISTS {
     my ($self, $key) = @_;
     $key <= $self->{max} or return 0;
     $self->{sel}->execute ($key);
     return $self->{sel}->fetch ? 1 : 0;
     } # EXISTS
 
-sub FETCH
-{
+sub FETCH {
     my ($self, $key) = @_;
     $key <= $self->{max} or return undef;
     $self->{sel}->execute ($key);
@@ -262,8 +251,7 @@ sub FETCH
     $self->_unstream ($r->[0]);
     } # STORE
 
-sub PUSH
-{
+sub PUSH {
     my ($self, @val) = @_;
     for (@val) {
 	$self->STORE (++$self->{max}, $_);
@@ -271,15 +259,13 @@ sub PUSH
     return $self->FETCHSIZE;
     } # PUSH
 
-sub POP
-{
+sub POP {
     my $self = shift;
     $self->{max} >= 0 or return;
     $self->DELETE ($self->{max});
     } # POP
 
-sub SHIFT
-{
+sub SHIFT {
     my $self = shift;
     my $val  = $self->DELETE (0);
     $self->{uky}->execute ($_ - 1, $_) for 1 .. $self->{max};
@@ -287,8 +273,7 @@ sub SHIFT
     return $val;
     } # SHIFT
 
-sub UNSHIFT
-{
+sub UNSHIFT {
     my ($self, @val) = @_;
     @val or return;
     my $incr = scalar @val;
@@ -320,8 +305,7 @@ sub UNSHIFT
 #   If OFFSET is past the end of the array, Perl issues a warning, and splices
 #     at the end of the array.
 
-sub SPLICE
-{
+sub SPLICE {
     my $nargs = $#_;
     my ($self, $off, $len, @new, @val) = @_;
 
@@ -378,40 +362,34 @@ sub SPLICE
     return wantarray ? @val : $val[-1];
     } # SPLICE
 
-sub FIRSTKEY
-{
+sub FIRSTKEY {
     my $self = shift;
     $self->{max} >= 0 or return;
     $self->{min} = 0;
     } # FIRSTKEY
 
-sub NEXTKEY
-{
+sub NEXTKEY {
     my $self = shift;
     exists $self->{min} && $self->{min} < $self->{max} and return ++$self->{min};
     delete $self->{min};
     return;
     } # FIRSTKEY
 
-sub FETCHSIZE
-{
+sub FETCHSIZE {
     my $self = shift;
     return $self->{max} + 1;
     } # FETCHSIZE
 
-sub EXTEND
-{
+sub EXTEND {
     # no-op
     } # EXTEND
 
-sub drop
-{
+sub drop {
     my $self = shift;
     $self->{tmp} = 1;
     } # drop
 
-sub _dump_table
-{
+sub _dump_table {
     my $self = shift;
     my $sth = $self->{dbh}->prepare ("select $self->{f_k}, $self->{f_v} from $self->{tbl} order by $self->{f_k}");
     $sth->execute;
@@ -421,8 +399,7 @@ sub _dump_table
 	}
     } # _dump_table
 
-sub DESTROY
-{
+sub DESTROY {
     my $self = shift;
     my $dbh = $self->{dbh} or return;
     for (qw( sel ins upd del cnt ctv uky )) {

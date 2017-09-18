@@ -68,8 +68,7 @@ my %DB = (
 	},
     );
 
-sub _create_table
-{
+sub _create_table {
     my ($cnf, $tmp) = @_;
     $cnf->{tmp} = $tmp;
 
@@ -97,8 +96,7 @@ sub _create_table
     $dbt eq "Unify" and $dbh->commit;
     } # create table
 
-sub TIEHASH
-{
+sub TIEHASH {
     my $pkg = shift;
     my $usg = qq{usage: tie %h, "$pkg", \$dbh [, { tbl => "tbl", key => "f_key", fld => "f_value" }];};
     my $dsn = shift or croak $usg;
@@ -186,8 +184,7 @@ sub TIEHASH
     bless $h, $pkg;
     } # TIEHASH
 
-sub _stream
-{
+sub _stream {
     my ($self, $val) = @_;
     defined $val or return undef;
     $self->{str} or return $val;
@@ -196,8 +193,7 @@ sub _stream
     return $val;
     } # _stream
 
-sub _unstream
-{
+sub _unstream {
     my ($self, $val) = @_;
     defined $val or return undef;
     $self->{str} or return $val;
@@ -206,8 +202,7 @@ sub _unstream
     return $val;
     } # _unstream
 
-sub STORE
-{
+sub STORE {
     my ($self, $key, $value) = @_;
     my $k = $self->{asc} ? unpack "H*", $key : $key;
     my $v = $self->_stream ($value);
@@ -219,8 +214,7 @@ sub STORE
     $r;
     } # STORE
 
-sub DELETE
-{
+sub DELETE {
     my ($self, $key) = @_;
     $self->{asc} and $key = unpack "H*", $key;
     $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
@@ -236,22 +230,19 @@ sub DELETE
     $self->_unstream ($r->[0]);
     } # DELETE
 
-sub CLEAR
-{
+sub CLEAR {
     my $self = shift;
     $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     } # CLEAR
 
-sub EXISTS
-{
+sub EXISTS {
     my ($self, $key) = @_;
     $self->{asc} and $key = unpack "H*", $key;
     $self->{sel}->execute ($key);
     return $self->{sel}->fetch ? 1 : 0;
     } # EXISTS
 
-sub FETCH
-{
+sub FETCH {
     my ($self, $key) = @_;
     $self->{asc} and $key = unpack "H*", $key;
     $self->{sel}->execute ($key);
@@ -259,8 +250,7 @@ sub FETCH
     $self->_unstream ($r->[0]);
     } # STORE
 
-sub FIRSTKEY
-{
+sub FIRSTKEY {
     my $self = shift;
     $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
     $self->{key} = $self->{dbh}->selectcol_arrayref ("select $self->{f_k} from $self->{tbl}");
@@ -275,8 +265,7 @@ sub FIRSTKEY
     pop @{$self->{key}};
     } # FIRSTKEY
 
-sub NEXTKEY
-{
+sub NEXTKEY {
     my $self = shift;
     unless (@{$self->{key}}) {
 	$self->{trh} and $self->{dbh}->commit;
@@ -285,22 +274,19 @@ sub NEXTKEY
     pop @{$self->{key}};
     } # FIRSTKEY
 
-sub SCALAR
-{
+sub SCALAR {
     my $self = shift;
     $self->{cnt}->execute;
     my $r = $self->{cnt}->fetch or return 0;
     $r->[0];
     } # SCALAR
 
-sub drop
-{
+sub drop {
     my $self = shift;
     $self->{tmp} = 1;
     } # drop
 
-sub DESTROY
-{
+sub DESTROY {
     my $self = shift;
     my $dbh = $self->{dbh} or return;
     for (qw( sel ins upd del cnt ctv )) {
