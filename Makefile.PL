@@ -39,8 +39,7 @@ if ($rv && -s "Makefile") {
 
 package MY;
 
-sub postamble
-{
+sub postamble {
     my $make_sep = $^O eq "VMS" ? "," : "";
     my $min_vsn = ($] >= 5.010 && -d "xt" && ($ENV{AUTOMATED_TESTING} || 0) != 1)
 	? join "\n" =>

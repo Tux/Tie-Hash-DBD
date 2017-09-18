@@ -21,9 +21,9 @@ ok (tied %hash,				"Hash tied");
 
 my %data = (
     UND => undef,
-    IV  => 1,
+    IV  => 3,
     NV  => 3.14159265358979,
-    PV  => "string",
+    PV  => "\xcf\x80",
     );
 my $data = $dsn =~ m/utf8/ ? _bindata () : "123\x{ff}";
 
