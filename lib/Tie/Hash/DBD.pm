@@ -416,6 +416,14 @@ C<h_key>.
 Defines the type of the key field in the database table.  The default is
 depending on the underlying database. Probably unwise to change.
 
+If the database allows the type to be indexed, the key field is defined
+as primary key.
+
+Note that if your data conflicts with internal (database)limits, like
+having a key that is longer than what the index on a primary key permits,
+you should probably want to create the table yourself with a different
+index or field type.
+
 =item fld
 
 Defines the name of the value field in the database table.   The default
