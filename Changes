@@ -1,9 +1,10 @@
-0.17	- 01 Jan 2018, H.Merijn Brand
+0.17	- 08 Feb 2018, H.Merijn Brand
     * It's 2017
     * Tested with perl-5.26.0
     * Fix tests for perl without dot in @INC
     * Document database restriction on idexed primary keys
     * It's 2018
+    * Add support for DBD::MariaDB
 
 0.16	- 10 Oct 2015, H.Merijn Brand
     * Add CONTRIBUTING.md

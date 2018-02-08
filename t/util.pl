@@ -44,10 +44,10 @@ sub _dsn {
 	return "dbi:Oracle:";
 	}
 
-    if ($type eq "mysql") {
+    if ($type eq "mysql" || $type eq "MariaDB") {
 	my $db = $ENV{MYSQLDB} || $user or
 	    plan skip_all => "Not a testable MariaDB/MySQL env";
-	return "dbi:mysql:database=$db";
+	return "dbi:$type:database=$db";
 	}
 
     if ($type eq "Unify") {

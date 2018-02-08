@@ -39,6 +39,13 @@ my %DB = (
 	autoc	=> 0,
 	k_asc	=> 1,
 	},
+    MariaDB	=> {
+	temp	=> "temporary",
+	t_key	=> "blob",	# Does not allow binary to be primary key
+	t_val	=> "blob",
+	clear	=> "truncate table",
+	autoc	=> 0,
+	},
     mysql	=> {
 	temp	=> "temporary",
 	t_key	=> "blob",	# Does not allow binary to be primary key
@@ -367,17 +374,18 @@ all by itself, but uses the connection provided in the handle.
 
 If the first argument is a scalar, it is used as DSN for DBI->connect ().
 
-Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::mysql,
-DBD::Oracle, DBD::Unify, and DBD::Firebird.  Note that due to limitations
-they won't all perform equally well. Firebird is not tested anymore.
+Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::MariaDB,
+DBD::mysql, DBD::Oracle, DBD::Unify, and DBD::Firebird.  Note that due to
+limitations they won't all perform equally well. Firebird is not tested
+anymore.
 
 DBD::Pg and DBD::SQLite have an unexpected great performance when server
 is the local system. DBD::SQLite is even almost as fast as DB_File.
 
 The current implementation appears to be extremely slow for CSV, as
-expected, mysql, and Unify. For Unify and mysql that is because these do
-not allow indexing on the key field so they cannot be set to be primary
-key.
+expected, MariaDB/mysql, and Unify. For Unify and MariaDB/mysql that is
+because these do not allow indexing on the key field so they cannot be
+set to be primary key.
 
 When using DBD::CSV with Text::CSV_XS version 1.02 or newer, it might be
 wise to disable utf8 encoding (only supported as of DBD::CSV-0.48):
