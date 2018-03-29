@@ -63,7 +63,7 @@ test_requires:
     Time::HiRes:         0
 recommends:
     DBI:                 1.641
-    DBD::SQLite:         1.56
+    DBD::SQLite:         1.58
     DBD::Pg:             3.7.4
     DBD::CSV:            0.51
 test_recommends:
