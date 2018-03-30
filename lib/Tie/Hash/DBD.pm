@@ -1,6 +1,6 @@
 package Tie::Hash::DBD;
 
-our $VERSION = "0.17";
+our $VERSION = "0.18";
 
 use strict;
 use warnings;

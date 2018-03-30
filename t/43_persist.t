@@ -25,6 +25,7 @@ my %data = (
     NV  => 3.14159265358979,
     PV  => "\xcf\x80",
     );
+DBD::CSV->VERSION < 0.48 and delete $data{PV};
 my $data = $dsn =~ m/utf8/ ? _bindata () : "123\x{ff}";
 
 ok (%hash = %data,			"Set data");

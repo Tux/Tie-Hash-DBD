@@ -1,3 +1,6 @@
+0.18	- 30 Mar 2018, H.Merijn Brand
+    * Skip test that is documented to fail on older versions of DBD::CSV
+
 0.17	- 29 Mar 2018, H.Merijn Brand
     * It's 2017
     * Tested with perl-5.26.0
