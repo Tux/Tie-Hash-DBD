@@ -602,7 +602,8 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-DBI, Tie::DBI, Tie::Hash, Tie::Array::DBD, Redis::Hash, DBM::Deep
+DBI, Tie::DBI, Tie::Hash, Tie::Array::DBD, Tie::Hash::RedisDB, Redis::Hash,
+DBM::Deep
 
 =cut
 
