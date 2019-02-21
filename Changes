@@ -1,6 +1,7 @@
-0.19	- 01 Jan 2019, H.Merijn Brand
+0.19	- 21 Feb 2019, H.Merijn Brand
     * Don't skip the test, but do not require the feature
     * It's 2019
+    * Support Sereal for (de-)serialization
 
 0.18	- 30 Mar 2018, H.Merijn Brand
     * Skip test that is documented to fail on older versions of DBD::CSV

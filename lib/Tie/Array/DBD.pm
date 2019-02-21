@@ -8,7 +8,6 @@ use warnings;
 use Carp;
 
 use DBI;
-use Storable qw( nfreeze thaw );
 
 my $dbdx = 0;
 
@@ -127,9 +126,11 @@ sub TIEARRAY {
 	dbh => $dbh,
 	tbl => undef,
 	tmp => $tmp,
-	str => undef,
 	ktp => $cnf->{t_key},
 	vtp => $cnf->{t_val},
+
+	_en => undef,
+	_de => undef,
 	};
 
     if ($opt) {
@@ -138,8 +139,23 @@ sub TIEARRAY {
 	$opt->{key} and $f_k      = $opt->{key};
 	$opt->{fld} and $f_v      = $opt->{fld};
 	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
-	$opt->{str} and $h->{str} = $opt->{str};
 	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
+
+	if ($opt->{str}) {
+	    if ($opt->{str} eq "Sereal") {
+		require Sereal::Encoder;
+		require Sereal::Decoder;
+		my $se = Sereal::Encoder->new;
+		my $sd = Sereal::Decoder->new;
+		$h->{_en} = sub { $se->encode ($_[0]) };
+		$h->{_de} = sub { $sd->decode ($_[0]) };
+		}
+	    elsif ($opt->{str} eq "Storable") {
+		require Storable;
+		$h->{_en} = sub { Storable::nfreeze ({ val => $_[0] }) };
+		$h->{_de} = sub { Storable::thaw    ($_[0])->{val}     };
+		}
+	    }
 	}
 
     $h->{f_k} = $f_k;
@@ -184,18 +200,16 @@ sub TIEARRAY {
 sub _stream {
     my ($self, $val) = @_;
     defined $val or return undef;
-    $self->{str} or return $val;
 
-    $self->{str} eq "Storable" and return nfreeze ({ val => $val });
+    $self->{_en} and return $self->{_en}->($val);
     return $val;
     } # _stream
 
 sub _unstream {
     my ($self, $val) = @_;
     defined $val or return undef;
-    $self->{str} or return $val;
 
-    $self->{str} eq "Storable" and return thaw ($val)->{val};
+    $self->{_de} and return $self->{_de}->($val);
     return $val;
     } # _unstream
 
@@ -544,9 +558,9 @@ depending on the underlying database and most likely some kind of BLOB.
 
 =item str
 
-Defines the required persistence module. Currently only supports the use
-of C<Storable>.  The default is undefined.  Passing unsupported streamer
-module names will be silently ignored.
+Defines the required persistence module.   Currently supports the use of
+C<Storable> and C<Sereal>. The default is undefined. Passing unsupported
+streamer module names will be silently ignored.
 
 Note that C<Storable> does not support persistence of perl types C<CODE>, 
 C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
@@ -687,7 +701,7 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-DBI, Tie::DBI, Tie::Hash, Tie::Hash::DBD, DBM::Deep
+DBI, Tie::DBI, Tie::Hash, Tie::Hash::DBD, DBM::Deep, Storable, Sereal
 
 =cut
 
