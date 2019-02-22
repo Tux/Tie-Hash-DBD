@@ -151,8 +151,8 @@ sub TIEHASH {
 	$opt->{ktp} and $h->{ktp} = $opt->{ktp};
 	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
 
-	if ($opt->{str}) {
-	    if ($opt->{str} eq "Sereal") {
+	if (my $str = $opt->{str}) {
+	    if ($str eq "Sereal") {
 		require Sereal::Encoder;
 		require Sereal::Decoder;
 		my $se = Sereal::Encoder->new;
@@ -160,10 +160,50 @@ sub TIEHASH {
 		$h->{_en} = sub { $se->encode ($_[0]) };
 		$h->{_de} = sub { $sd->decode ($_[0]) };
 		}
-	    elsif ($opt->{str} eq "Storable") {
+	    elsif ($str eq "Storable") {
 		require Storable;
 		$h->{_en} = sub { Storable::nfreeze ({ val => $_[0] }) };
 		$h->{_de} = sub { Storable::thaw    ($_[0])->{val}     };
+		}
+	    elsif ($str eq "FreezeThaw") {
+		require FreezeThaw;
+		$h->{_en} = sub { FreezeThaw::freeze ($_[0]) };
+		$h->{_de} = sub { FreezeThaw::thaw   ($_[0]) };
+		}
+	    elsif ($str eq "JSON") {
+		require JSON;
+		my $j = JSON->new->allow_nonref;
+		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
+		$h->{_de} = sub { $j->decode ($_[0]) };
+		}
+	    elsif ($str eq "JSON::Syck") {
+		require JSON::Syck;
+		$h->{_en} = sub { JSON::Syck::Dump ($_[0]) };
+		$h->{_de} = sub { JSON::Syck::Load ($_[0]) };
+		}
+	    elsif ($str eq "YAML") {
+		require YAML;
+		$h->{_en} = sub { YAML::Dump ($_[0]) };
+		$h->{_de} = sub { YAML::Load ($_[0]) };
+		}
+	    elsif ($str eq "YAML::Syck") {
+		require YAML;
+		$h->{_en} = sub { YAML::Syck::Dump ($_[0]) };
+		$h->{_de} = sub { YAML::Syck::Load ($_[0]) };
+		}
+	    elsif ($str eq "Data::Dumper") {
+		require Data::Dumper;
+		$h->{_en} = sub { Data::Dumper::Dumper ($_[0]) };
+		$h->{_de} = sub { eval $_[0] };
+		}
+	    elsif ($str eq "XML::Dumper") {
+		require XML::Dumper;
+		my $xd = XML::Dumper->new;
+		$h->{_en} = sub { $xd->pl2xml ($_[0]) };
+		$h->{_de} = sub { $xd->xml2pl ($_[0]) };
+		}
+	    else {
+		croak "Unsupported serializer: $str\n";
 		}
 	    }
 	}
@@ -459,14 +499,48 @@ depending on the underlying database and most likely some kind of BLOB.
 =item str
 
 Defines the required persistence module.   Currently supports the use of
-C<Storable> and C<Sereal>. The default is undefined. Passing unsupported
-streamer module names will be silently ignored.
+C<Storable>, C<Sereal>,  C<JSON>, C<JSON::Syck>,  C<YAML>, C<YAML::Syck>
+and C<XML::Dumper>.
 
-Note that C<Storable> does not support persistence of perl types C<CODE>, 
-C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
+The default is undefined.
+
+Passing any other value will cause a C<croak>.
 
 If you want to preserve Encoding on the hash values, you should use this
-feature.
+feature. (except for C<JSON::Syck>, C<YAML>, and C<YAML::Syck>).
+
+Here is a table of supported data types given a data structure like this:
+
+    my %deep = (
+	UND => undef,
+	IV  => 1,
+	NV  => 3.14159265358979,
+	PV  => "string",
+	PV8 => "ab\ncd\x{20ac}\t",
+	PVM => $!,
+	RV  => \$DBD,
+	AR  => [ 1..2 ],
+	HR  => { key => "value" },
+	OBJ => ( bless { auto_diag => 1 }, "Text::CSV_XS" ),
+	RX  => qr{^re[gG]e?x},
+	FMT => *{$::{STDOUT}}{FORMAT},
+	CR  => sub { "code"; },
+	GLB => *STDERR,
+	IO  => *{$::{STDERR}}{IO},
+	);
+
+              UND  IV  NV  PV PV8 PVM  RV  AR  HR OBJ  RX FMT  CR GLB  IO
+ No streamer   x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+ Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+ Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
+ JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+ JSON::Syck    x   x   x   x   x   -   -   x   x   x   -   x   -   -   -
+ YAML          x   x   x   x   x   -   x   x   x   x   x   x   -   -   -
+ YAML::Syck    x   x   x   x   x   -   x   x   x   x   -   x   -   -   -
+ XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
+
+So, C<Storable> does not support persistence of types C<CODE>, C<REGEXP>,
+C<FORMAT>, C<IO>, and C<GLOB>.
 
 Also note that this module does not yet support dynamic deep structures.
 See L</Nesting and deep structues>.
@@ -617,7 +691,7 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 DBI, Tie::DBI, Tie::Hash, Tie::Array::DBD, Tie::Hash::RedisDB, Redis::Hash,
-DBM::Deep, Storable, Sereal
+DBM::Deep, Storable, Sereal, JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper
 
 =cut
 

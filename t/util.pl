@@ -127,4 +127,67 @@ sub cleanup {
 	}
     } # cleanup
 
+# From Data::Serializer:
+#   Bencode
+#   Convert::Bencode
+#   Convert::Bencode_XS
+#   Config::General
+#   Data::Denter
+# - Data::Dumper
+#   Data::Taxi
+# - FreezeThaw
+# v JSON
+# v JSON::Syck
+#   PHP::Serialization
+# v Storable
+# v XML::Dumper
+#   XML::Simple
+# v YAML
+# v YAML::Syck
+
+sub supported_serializers {
+    qw( Storable
+	Sereal
+	JSON JSON::Syck
+	YAML YAML::Syck
+	XML::Dumper
+	Not::Supported
+	);
+    } # supported_serializers
+
+sub deep {
+    my ($DBD, $str) = (@_, "");
+
+    my %deep = (
+	UND => undef,
+	IV  => 1,
+	NV  => 3.14159265358979,
+	PV  => "string",
+	PV8 => "ab\ncd\x{20ac}\t",
+	PVM => $!,
+	RV  => \$DBD,
+	AR  => [ 1..2 ],
+	HR  => { key => "value" },
+	OBJ => ( bless { auto_diag => 1 }, "Text::CSV_XS" ),
+	RX  => qr{^re[gG]e?x},
+	FMT => *{$::{STDOUT}}{FORMAT},
+	CR  => sub { "code"; },
+	GLB => *STDERR,
+	IO  => *{$::{STDERR}}{IO},
+	);
+
+    $str eq ""            and delete @deep{qw( IO GLB CR RX FMT            )};
+    $str eq "Storable"    and delete @deep{qw( IO GLB CR RX FMT            )};
+    $str eq "Sereal"      and delete @deep{qw( IO GLB CR                   )};
+    $str eq "JSON"        and delete @deep{qw( IO GLB CR RX FMT RV OBJ     )};
+    $str eq "JSON::Syck"  and delete @deep{qw( IO GLB CR RX     RV     PV8 )};
+    $str eq "YAML"        and delete @deep{qw( IO GLB CR               PV8 )};
+    $str eq "YAML::Syck"  and delete @deep{qw( IO GLB CR RX            PV8 )};
+    $str eq "XML::Dumper" and delete @deep{qw( IO GLB CR RX                )};
+
+    $str =~ m/^[JYX]/ && $DBD =~ m/^(?: Pg | MariaDB )$/x and delete $deep{PV8};
+
+    %deep;
+    } # deep
+
 1;

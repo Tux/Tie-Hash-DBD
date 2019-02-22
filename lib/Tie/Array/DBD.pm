@@ -559,14 +559,48 @@ depending on the underlying database and most likely some kind of BLOB.
 =item str
 
 Defines the required persistence module.   Currently supports the use of
-C<Storable> and C<Sereal>. The default is undefined. Passing unsupported
-streamer module names will be silently ignored.
+C<Storable>, C<Sereal>,  C<JSON>, C<JSON::Syck>,  C<YAML>, C<YAML::Syck>
+and C<XML::Dumper>.
 
-Note that C<Storable> does not support persistence of perl types C<CODE>, 
-C<REGEXP>, C<IO>, C<FORMAT>, and C<GLOB>.
+The default is undefined.
 
-If you want to preserve Encoding on the array values, you should use this
-feature.
+Passing any other value will cause a C<croak>.
+
+If you want to preserve Encoding on the hash values, you should use this
+feature. (except for C<JSON::Syck>, C<YAML>, and C<YAML::Syck>).
+
+Here is a table of supported data types given a data structure like this:
+
+    my %deep = (
+	UND => undef,
+	IV  => 1,
+	NV  => 3.14159265358979,
+	PV  => "string",
+	PV8 => "ab\ncd\x{20ac}\t",
+	PVM => $!,
+	RV  => \$DBD,
+	AR  => [ 1..2 ],
+	HR  => { key => "value" },
+	OBJ => ( bless { auto_diag => 1 }, "Text::CSV_XS" ),
+	RX  => qr{^re[gG]e?x},
+	FMT => *{$::{STDOUT}}{FORMAT},
+	CR  => sub { "code"; },
+	GLB => *STDERR,
+	IO  => *{$::{STDERR}}{IO},
+	);
+
+              UND  IV  NV  PV PV8 PVM  RV  AR  HR OBJ  RX FMT  CR GLB  IO
+ No streamer   x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+ Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+ Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
+ JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+ JSON::Syck    x   x   x   x   x   -   -   x   x   x   -   x   -   -   -
+ YAML          x   x   x   x   x   -   x   x   x   x   x   x   -   -   -
+ YAML::Syck    x   x   x   x   x   -   x   x   x   x   -   x   -   -   -
+ XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
+
+So, C<Storable> does not support persistence of types C<CODE>, C<REGEXP>,
+C<FORMAT>, C<IO>, and C<GLOB>.
 
 Also note that this module does not yet support dynamic deep structures.
 See L</Nesting and deep structues>.

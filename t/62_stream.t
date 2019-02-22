@@ -49,24 +49,7 @@ ok ($hash{c4} = $anr,					"Binary value");
 ok ($hash{$anr} = 42,					"Binary key");
 ok ($hash{$anr} = $anr,					"Binary key and value");
 
-my %deep = (
-    UND => undef,
-    IV  => 1,
-    NV  => 3.14159265358979,
-    PV  => "string",
-    PV8 => "ab\ncd\x{20ac}\t",
-    PVM => $!,
-    RV  => \$DBD,
-    AR  => [ 1..2 ],
-    HR  => { key => "value" },
-    OBJ => ( bless { auto_diag => 1 }, "Text::CSV_XS" ),
-    # These are not handled by Storable:
-#   CR  => sub { "code"; },
-#   GLB => *STDERR,
-#   IO  => *{$::{STDERR}}{IO},
-#   RX  => qr{^re[gG]e?x},
-#   FMT => *{$::{STDOUT}}{FORMAT},
-    );
+my %deep = deep ($DBD);
 
 ok ($hash{deep} = { %deep },				"Deep structure");
 
