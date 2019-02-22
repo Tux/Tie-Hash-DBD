@@ -202,6 +202,11 @@ sub TIEHASH {
 		$h->{_en} = sub { $xd->pl2xml ($_[0]) };
 		$h->{_de} = sub { $xd->xml2pl ($_[0]) };
 		}
+	    elsif ($str eq "Bencode") {
+		require Bencode;
+		$h->{_en} = sub { Bencode::bencode ($_[0]) };
+		$h->{_de} = sub { Bencode::bdecode ($_[0]) };
+		}
 	    else {
 		croak "Unsupported serializer: $str\n";
 		}
@@ -507,7 +512,7 @@ The default is undefined.
 Passing any other value will cause a C<croak>.
 
 If you want to preserve Encoding on the hash values, you should use this
-feature. (except for C<JSON::Syck>, C<YAML>, and C<YAML::Syck>).
+feature. (except where C<PV8> has a C<-> in the table below)
 
 Here is a table of supported data types given a data structure like this:
 
@@ -538,6 +543,7 @@ Here is a table of supported data types given a data structure like this:
  YAML          x   x   x   x   x   -   x   x   x   x   x   x   -   -   -
  YAML::Syck    x   x   x   x   x   -   x   x   x   x   -   x   -   -   -
  XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
+ Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -
 
 So, C<Storable> does not support persistence of types C<CODE>, C<REGEXP>,
 C<FORMAT>, C<IO>, and C<GLOB>.
@@ -691,7 +697,8 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 DBI, Tie::DBI, Tie::Hash, Tie::Array::DBD, Tie::Hash::RedisDB, Redis::Hash,
-DBM::Deep, Storable, Sereal, JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper
+DBM::Deep, Storable, Sereal, JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper,
+Bencode
 
 =cut
 

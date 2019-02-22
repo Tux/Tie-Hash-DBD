@@ -141,8 +141,8 @@ sub TIEARRAY {
 	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
 	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
 
-	if ($opt->{str}) {
-	    if ($opt->{str} eq "Sereal") {
+	if (my $str = $opt->{str}) {
+	    if ($str eq "Sereal") {
 		require Sereal::Encoder;
 		require Sereal::Decoder;
 		my $se = Sereal::Encoder->new;
@@ -150,10 +150,55 @@ sub TIEARRAY {
 		$h->{_en} = sub { $se->encode ($_[0]) };
 		$h->{_de} = sub { $sd->decode ($_[0]) };
 		}
-	    elsif ($opt->{str} eq "Storable") {
+	    elsif ($str eq "Storable") {
 		require Storable;
 		$h->{_en} = sub { Storable::nfreeze ({ val => $_[0] }) };
 		$h->{_de} = sub { Storable::thaw    ($_[0])->{val}     };
+		}
+	    elsif ($str eq "FreezeThaw") {
+		require FreezeThaw;
+		$h->{_en} = sub { FreezeThaw::freeze ($_[0]) };
+		$h->{_de} = sub { FreezeThaw::thaw   ($_[0]) };
+		}
+	    elsif ($str eq "JSON") {
+		require JSON;
+		my $j = JSON->new->allow_nonref;
+		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
+		$h->{_de} = sub { $j->decode ($_[0]) };
+		}
+	    elsif ($str eq "JSON::Syck") {
+		require JSON::Syck;
+		$h->{_en} = sub { JSON::Syck::Dump ($_[0]) };
+		$h->{_de} = sub { JSON::Syck::Load ($_[0]) };
+		}
+	    elsif ($str eq "YAML") {
+		require YAML;
+		$h->{_en} = sub { YAML::Dump ($_[0]) };
+		$h->{_de} = sub { YAML::Load ($_[0]) };
+		}
+	    elsif ($str eq "YAML::Syck") {
+		require YAML;
+		$h->{_en} = sub { YAML::Syck::Dump ($_[0]) };
+		$h->{_de} = sub { YAML::Syck::Load ($_[0]) };
+		}
+	    elsif ($str eq "Data::Dumper") {
+		require Data::Dumper;
+		$h->{_en} = sub { Data::Dumper::Dumper ($_[0]) };
+		$h->{_de} = sub { eval $_[0] };
+		}
+	    elsif ($str eq "XML::Dumper") {
+		require XML::Dumper;
+		my $xd = XML::Dumper->new;
+		$h->{_en} = sub { $xd->pl2xml ($_[0]) };
+		$h->{_de} = sub { $xd->xml2pl ($_[0]) };
+		}
+	    elsif ($str eq "Bencode") {
+		require Bencode;
+		$h->{_en} = sub { Bencode::bencode ($_[0]) };
+		$h->{_de} = sub { Bencode::bdecode ($_[0]) };
+		}
+	    else {
+		croak "Unsupported serializer: $str\n";
 		}
 	    }
 	}
@@ -567,7 +612,7 @@ The default is undefined.
 Passing any other value will cause a C<croak>.
 
 If you want to preserve Encoding on the hash values, you should use this
-feature. (except for C<JSON::Syck>, C<YAML>, and C<YAML::Syck>).
+feature. (except where C<PV8> has a C<-> in the table below)
 
 Here is a table of supported data types given a data structure like this:
 
@@ -735,7 +780,8 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-DBI, Tie::DBI, Tie::Hash, Tie::Hash::DBD, DBM::Deep, Storable, Sereal
+DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal,
+JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode
 
 =cut
 
