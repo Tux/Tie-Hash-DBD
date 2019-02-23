@@ -4,6 +4,7 @@
     * Support Sereal for (de-)serialization
     * Support JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, FreezeThaw,
       and Bencode for (de-)serialization.
+    * Streamlined the test suite
 
 0.18	- 30 Mar 2018, H.Merijn Brand
     * Skip test that is documented to fail on older versions of DBD::CSV
