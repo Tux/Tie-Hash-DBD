@@ -152,6 +152,7 @@ sub supported_serializers {
 	YAML YAML::Syck
 	XML::Dumper
 	Bencode
+	FreezeThaw
 	Not::Supported
 	);
     } # supported_serializers
@@ -185,6 +186,7 @@ sub deep {
     $str eq "YAML"        and delete @deep{qw( IO GLB CR               PV8 )};
     $str eq "YAML::Syck"  and delete @deep{qw( IO GLB CR RX            PV8 )};
     $str eq "XML::Dumper" and delete @deep{qw( IO GLB CR RX                )};
+    $str eq "FreezeThaw"  and delete @deep{qw( IO     CR RX            PV8 )};
     $str eq "Bencode"     and delete @deep{qw( IO UND CR RX FMT RV OBJ PV8 )};
 
     $str =~ m/^[JYX]/ && $DBD =~ m/^(?: Pg | MariaDB )$/x and delete $deep{PV8};

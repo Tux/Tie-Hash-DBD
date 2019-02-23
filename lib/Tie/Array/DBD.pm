@@ -157,14 +157,14 @@ sub TIEARRAY {
 		}
 	    elsif ($str eq "FreezeThaw") {
 		require FreezeThaw;
-		$h->{_en} = sub { FreezeThaw::freeze ($_[0]) };
-		$h->{_de} = sub { FreezeThaw::thaw   ($_[0]) };
+		$h->{_en} = sub {  FreezeThaw::freeze ($_[0])     };
+		$h->{_de} = sub { (FreezeThaw::thaw   ($_[0]))[0] };
 		}
 	    elsif ($str eq "JSON") {
 		require JSON;
 		my $j = JSON->new->allow_nonref;
 		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
-		$h->{_de} = sub { $j->decode ($_[0]) };
+		$h->{_de} = sub {       $j->decode ($_[0]) };
 		}
 	    elsif ($str eq "JSON::Syck") {
 		require JSON::Syck;
@@ -639,13 +639,16 @@ Here is a table of supported data types given a data structure like this:
  Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
  Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
  JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
- JSON::Syck    x   x   x   x   x   -   -   x   x   x   -   x   -   -   -
- YAML          x   x   x   x   x   -   x   x   x   x   x   x   -   -   -
- YAML::Syck    x   x   x   x   x   -   x   x   x   x   -   x   -   -   -
+ JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
+ YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
+ YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
  XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
+ FreezeThaw    x   x   x   x   -   x   x   x   x   x   -   x   -   x   -
+ Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -
 
 So, C<Storable> does not support persistence of types C<CODE>, C<REGEXP>,
-C<FORMAT>, C<IO>, and C<GLOB>.
+C<FORMAT>, C<IO>, and C<GLOB>. Be sure to test if all of your data types
+are supported by the serializer you choose. YMMV.
 
 "No streamer"  might work inside the current process if reference values
 are stored, but it is highly unlikely they are persistant.
@@ -784,7 +787,7 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal,
-JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode
+JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw
 
 =cut
 
