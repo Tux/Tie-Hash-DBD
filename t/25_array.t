@@ -5,8 +5,17 @@ use warnings;
 
 use Test::More;
 
+my $DBD = "SQLite";
+
 require "./t/arraytest.pl";
 
-arraytests ("SQLite");
+# Test connect without serializer to check if DBD is available
+{   my @array;
+    eval { tie @array, "Tie::Array::DBD", dsn ($DBD) };
+    tied  @array or plan_fail ($DBD);
+    untie @array;
+    }
+
+arraytests ($DBD);
 
 done_testing;
