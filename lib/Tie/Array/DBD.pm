@@ -651,7 +651,7 @@ C<FORMAT>, C<IO>, and C<GLOB>. Be sure to test if all of your data types
 are supported by the serializer you choose. YMMV.
 
 "No streamer"  might work inside the current process if reference values
-are stored, but it is highly unlikely they are persistant.
+are stored, but it is highly unlikely they are persistent.
 
 Also note that this module does not yet support dynamic deep structures.
 See L</Nesting and deep structues>.
