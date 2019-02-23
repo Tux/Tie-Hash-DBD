@@ -647,6 +647,9 @@ Here is a table of supported data types given a data structure like this:
 So, C<Storable> does not support persistence of types C<CODE>, C<REGEXP>,
 C<FORMAT>, C<IO>, and C<GLOB>.
 
+"No streamer"  might work inside the current process if reference values
+are stored, but it is highly unlikely they are persistant.
+
 Also note that this module does not yet support dynamic deep structures.
 See L</Nesting and deep structues>.
 
