@@ -11,17 +11,28 @@ sub _bindata {
     return $data;
     } # _bindata
 
+my $tempdb;
+
 sub _dsn {
     my $type = shift;
 
-    $type eq "SQLite"	and return "dbi:SQLite:dbname=db.3";
-#   $type eq "SQLite"	and return "dbi:SQLite:dbname=:memory:";
     $type eq "Pg"	and return "dbi:Pg:";
+
+    my $rnd = sprintf "%d_%04d", $$, (time + int rand 10000) % 10000;
+
+    if ($type eq "SQLite") {
+	$tempdb = "db_$rnd.3";
+	unlink $tempdb;
+#	return "dbi:SQLite:dbname=:memory:";
+	return "dbi:SQLite:dbname=$tempdb";
+	}
 
     if ($type eq "CSV") {
 	my $xsv = eval q{use Text::CSV_XS; $Text::CSV_XS::VERSION; } || 0;
 	my $dbv = eval q{use DBD::CSV;     $DBD::CSV::VERSION;     } || 0;
-	my $dsn = "dbi:CSV:f_ext=.csv/r;csv_null=1";
+	$tempdb = "csv_$rnd";
+	mkdir $tempdb;
+	my $dsn = "dbi:CSV:f_dir=$tempdb;f_ext=.csv/r;csv_null=1";
 	$xsv > 1.01 && $dbv > 0.47     and $dsn .= ";csv_decode_utf8=0";
 	$dbv > 0.29 && $]   < 5.008009 and $dsn .= ";csv_auto_diag=0";
 	return $dsn;
@@ -117,12 +128,23 @@ sub cleanup {
     $type eq "Firebird"	and return;
 
     if ($type eq "SQLite") {
-	unlink $_ for glob "db.3*";
+	if ($tempdb) {
+	    unlink $tempdb;
+	    return;
+	    }
+	my @db = sort glob "db*.3*" or return;
+	unlink $_ for @db;
 	return;
 	}
 
     if ($type eq "CSV") {
-	unlink $_ for glob "t_tie*.csv";
+	if ($tempdb) {
+	    unlink for glob "$tempdb/*.csv";
+	    rmdir $tempdb;
+	    return;
+	    }
+	my @db = sort glob "t_tie*.csv" or return;
+	unlink $_ for @db;
 	return;
 	}
     } # cleanup

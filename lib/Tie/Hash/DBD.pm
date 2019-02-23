@@ -9,7 +9,7 @@ use Carp;
 
 use DBI;
 
-my $dbdx = 0;
+my $dbdx = sprintf "%04d", (time + int rand 10000) % 10000;
 
 my %DB = (
     # k_asc is needed if h_key mush be converted to hex because
@@ -358,17 +358,17 @@ sub DESTROY {
     for (qw( sel ins upd del cnt ctv )) {
 	$self->{$_} or next;
 	$self->{$_}->finish;
-	undef $self->{$_}; # DESTROY handle
+	undef  $self->{$_}; # DESTROY handle
+	delete $self->{$_};
 	}
+    delete $self->{$_} for qw( _de _en );
     if ($self->{tmp}) {
 	$dbh->{AutoCommit} or $dbh->rollback;
 	$dbh->do ("drop table ".$self->{tbl});
-	$dbh->{AutoCommit} or $dbh->commit;
 	}
-    else {
-	$dbh->{AutoCommit} or $dbh->commit;
-	}
+    $dbh->{AutoCommit} or $dbh->commit;
     $dbh->disconnect;
+    undef $dbh;
     undef $self->{dbh};
     } # DESTROY
 

@@ -12,9 +12,9 @@ sub persisttests {
     my ($DBD, $t) = @_;
 
     my %hash;
-    cleanup ($DBD);
     my $tbl = "t_tie_${t}_$$"."_persist";
-    eval { tie %hash, "Tie::Hash::DBD", dsn ($DBD), { tbl => $tbl } };
+    my $dsn = dsn ($DBD);
+    eval { tie %hash, "Tie::Hash::DBD", $dsn, { tbl => $tbl } };
 
     tied %hash or plan_fail ($DBD);
 
@@ -24,9 +24,8 @@ sub persisttests {
 	UND => undef,
 	IV  => 3,
 	NV  => 3.14159265358979001,
-	PV  => "\xcf\x80",
+	PV  => "pi", # "\xcf\x80" binary is tested elsewhere
 	);
-    $DBD eq "CSV" && DBD::CSV->VERSION < 0.48 and $data{PV} = "pi";
     my $data = _bindata ();
 
     ok (%hash = %data,			"Set data");
@@ -42,7 +41,7 @@ sub persisttests {
 
     untie %hash;
 
-    tie %hash, "Tie::Hash::DBD", _dsn ($DBD), { tbl => $tbl };
+    tie %hash, "Tie::Hash::DBD", $dsn, { tbl => $tbl };
 
     ok (tied %hash,			"Hash re-tied");
 
