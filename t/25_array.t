@@ -134,15 +134,7 @@ is_deeply ([splice (@array, 4, -2, 25)],	[4..7],	"splice \@array, off, -len");
 is_deeply (\@array, [0,1,3,2,25,8,9],			".. leftover");
 
 untie @array;
-cleanup ($DBD);
 
-eval { tie @array, "Tie::Array::DBD", dsn ($DBD), { str => "Storable" }};
-ok (@array = ([ 1, 2 ]),				"Set AOA");
-is_deeply (\@array, [[ 1, 2 ]],				"AOA");
-#ok ($array[0][1] = 1,					"Set element");
-#is ($array[0][1], 1,					"Get element");
-
-untie @array;
 cleanup ($DBD);
 
 done_testing;

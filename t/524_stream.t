@@ -5,8 +5,10 @@ use warnings;
 
 use Test::More;
 use Tie::Hash::DBD;
+use Tie::Array::DBD;
 
 require "./t/util.pl";
+require "./t/arraytest.pl";
 
 my $DBD = "MariaDB";
 
@@ -72,6 +74,8 @@ foreach my $str (supported_serializers ()) {
 
     untie %hash;
     }
+
+arraytests ($DBD, $_) for supported_serializers ();
 
 cleanup ($DBD);
 
