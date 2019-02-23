@@ -6,6 +6,9 @@ lib/Tie/Hash/DBD.pm
 README
 CONTRIBUTING.md
 examples/copy.pl
+t/util.pl
+t/arraytest.pl
+t/hashtest.pl
 t/10_load.t
 t/20_SQLite.t
 t/21_bulk.t
@@ -61,4 +64,3 @@ t/83_persist.t
 t/84_stream.t
 t/85_array.t
 t/86_autoc.t
-t/util.pl
