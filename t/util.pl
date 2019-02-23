@@ -163,7 +163,7 @@ sub deep {
     my %deep = (
 	UND => undef,
 	IV  => 1,
-	NV  => 3.14159265358979,
+	NV  => 3.14159265358979001,
 	PV  => "string",
 	PV8 => "ab\ncd\x{20ac}\t",
 	PVM => $!,
