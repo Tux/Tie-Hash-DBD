@@ -654,7 +654,7 @@ are supported by the serializer you choose. YMMV.
 are stored, but it is highly unlikely they are persistent.
 
 Also note that this module does not yet support dynamic deep structures.
-See L</Nesting and deep structues>.
+See L</Nesting and deep structures>.
 
 =back
 
