@@ -11,6 +11,7 @@ t/basetest.pl
 t/arraytest.pl
 t/hashtest.pl
 t/persist.pl
+t/streamtest.pl
 t/10_load.t
 t/20_SQLite.t
 t/21_bulk.t
