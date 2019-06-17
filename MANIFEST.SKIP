@@ -2,6 +2,7 @@
 \.releaserc
 \.aspell\.local\.pws
 \.travis.yml
+\.whitesource
 xt/
 blib/
 cover_db/

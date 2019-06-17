@@ -1,4 +1,4 @@
-0.19	- 27 Feb 2019, H.Merijn Brand
+0.19	- 17 Jun 2019, H.Merijn Brand
     * Don't skip the test, but do not require the feature
     * It's 2019
     * Support Sereal for (de-)serialization
@@ -6,6 +6,7 @@
       and Bencode for (de-)serialization.
     * Streamlined the test suite
     * Doc updates
+    * Provide cpanfile
 
 0.18	- 30 Mar 2018, H.Merijn Brand
     * Skip test that is documented to fail on older versions of DBD::CSV
