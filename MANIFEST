@@ -5,6 +5,7 @@ lib/Tie/Array/DBD.pm
 lib/Tie/Hash/DBD.pm
 README
 CONTRIBUTING.md
+cpanfile
 examples/copy.pl
 t/util.pl
 t/basetest.pl
