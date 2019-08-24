@@ -1,25 +1,26 @@
 #!/pro/bin/perl
 
-use strict;
+use 5.14.2;
 use warnings;
 
-sub usage
-{
+our $VERSION = "0.10";
+our $CMD = $0 =~ s{.*/}{}r;
+
+sub usage {
     my $err = shift and select STDERR;
-    print "usage: $0 [--verbose[=<level>]] [--fast | --long]\n";
+    say "usage: $CMD [--verbose[=<level>]] [--fast | --long]";
     exit $err;
     } # usage
 
 use Getopt::Long qw(:config bundling nopermute);
-my $opt_v = 1;
-my $opt_f = 0;
-my $opt_l = 0;
 GetOptions (
-    "help|?"	=> sub { usage (0); },
+    "help|?"		=> sub { usage (0); },
+    "V|version"		=> sub { say "$CMD [$VERSION]"; exit 0; },
 
-    "v|verbose:2"	=> \$opt_v,
-    "f|s|fast|short!"	=> \$opt_f,
-    "l|long|slow!"	=> \$opt_l,
+    "f|s|fast|short!"	=> \ my $opt_f,
+    "l|long|slow!"	=> \ my $opt_l,
+
+    "v|verbose:2"	=> \(my $opt_v = 1),
     ) or usage (1);
 
 use Data::Peek;
@@ -31,59 +32,72 @@ my $DB_CREATE = eval "use BerkeleyDB; DB_CREATE;";
 
 use Time::HiRes qw( gettimeofday tv_interval );
 
+my $u = $ENV{LOGNAME} || $ENV{USER} || getpwuid $<;
+
 my %t;
 
 my @conf = (
-    [ "Native",  undef,             undef				],
+    [ "perl",    undef,             undef				],
 
-    [ "GDBM",    "GDBM_File",       "db.8", O_RDWR|O_CREAT, 0666	],
-    [ "NDBM",    "NDBM_File",       "db.7", O_RDWR|O_CREAT, 0666	],
-    [ "ODBM",    "ODBM_File",       "db.6", O_RDWR|O_CREAT, 0666	],
-    [ "SDBM",    "SDBM_File",       "db.5", O_RDWR|O_CREAT, 0666	],
-    [ "DB_File", "DB_File",         "db.2", O_RDWR|O_CREAT, 0666	],
-    [ "CDB_File","CDB_File",        "db.3"				],
-    [ "Berkeley","BerkeleyDB::Hash", -Filename => "db.4",
-				     -Flags    => $DB_CREATE,		],
-    [ "Redis",   "Redis::Hash",     "dbd_"				],
-    [ "Redis2",  "Redis::Hash",     "dbd2_", encoding => undef		],
-    [ "SQLite",  "Tie::Hash::DBD",  "dbi:SQLite:dbname=db.1"		],
-    [ "Pg",      "Tie::Hash::DBD",  "dbi:Pg:"				],
-    [ "mysql",   "Tie::Hash::DBD",  "dbi:mysql:database=merijn"		],
-    [ "CSV",     "Tie::Hash::DBD",  "dbi:CSV:f_ext=.csv/r;csv_null=1"	],
-    [ "Oracle",  "Tie::Hash::DBD",  "dbi:Oracle:"			],
-    [ "Unify",   "Tie::Hash::DBD",  "dbi:Unify:"			],
+    [ "GDBM",      "GDBM_File",       "db.8", O_RDWR|O_CREAT, 0666	],
+    [ "NDBM",      "NDBM_File",       "db.7", O_RDWR|O_CREAT, 0666	],
+    [ "ODBM",      "ODBM_File",       "db.6", O_RDWR|O_CREAT, 0666	],
+    [ "SDBM",      "SDBM_File",       "db.5", O_RDWR|O_CREAT, 0666	],
+    [ "DB_File",   "DB_File",         "db.2", O_RDWR|O_CREAT, 0666	],
+    [ "CDB_File",  "CDB_File",        "db.3"				],
+    [ "BerkeleyDB","BerkeleyDB::Hash", -Filename => "db.4",
+				       -Flags    => $DB_CREATE,		],
+    [ "Redis",     "Redis::Hash",     "dbd_"				],
+    [ "Redis2",    "Redis::Hash",     "dbd2_", encoding => undef	],
+    [ "SQLite",    "Tie::Hash::DBD",  "dbi:SQLite:dbname=db.1"		],
+    [ "Pg",        "Tie::Hash::DBD",  "dbi:Pg:"				],
+    [ "mysql",     "Tie::Hash::DBD",  "dbi:mysql:database=$u;user=$u"	],
+    [ "MariaDB",   "Tie::Hash::DBD",  "dbi:MariaDB:database=$u;user=$u"	],
+    [ "CSV",       "Tie::Hash::DBD",  "dbi:CSV:f_ext=.csv/r;csv_null=1"	],
+    [ "Oracle",    "Tie::Hash::DBD",  "dbi:Oracle:"			],
+    [ "Unify",     "Tie::Hash::DBD",  "dbi:Unify:"			],
     );
+
+tie my %results, "Tie::Hash::DBD", "dbi:CSV:f_ext=.csv;csv_null=1", {
+    table => "disk",
+    key   => "conf",
+    fld   => "value",
+    };
 
 unlink $_ for glob ("db.[0-9]*"), glob ("t_tie*.csv");
 
 foreach my $r (@conf) {
     my ($name, $pkg, @args, %hash) = @$r;
 
+    local $ENV{DBI_USER} = $ENV{DBI_USER};
+    local $ENV{DBI_PASS} = $ENV{DBI_PASS};
+
     if ($name eq "Oracle") {
 	-d ($ENV{ORACLE_HOME} || "\x01") or next;
-	$ENV{DBI_USER} = "PROBEV";
-	$ENV{DBI_PASS} = "PROBEV";
+	@ENV{qw( DBI_USER DBI_PASS )} = split m{/} => $ENV{ORACLE_USERID};
 	}
     if ($name eq "Unify") {
-	-d ($ENV{UNIFY}  || "\x01") or next;
-	-d ($ENV{DBPATH} || "\x01") or next;
-	$ENV{USCHEMA}  = "PROBEV";
-	$ENV{DBI_USER} = "PROBEV";
-	$ENV{DBI_PASS} = undef;
+	-d ($ENV{UNIFY}  || "\x01")      or next;
+	-d ($ENV{DBPATH} || "\x01")      or next;
 	}
 
     if ($pkg) {
 	eval { tie %hash, $pkg, @args };
 	if ($@) {
-	    warn $@;
+	    warn "$name:", $@;
 	    next;
 	    }
 	}
 
+    my $vsn = $pkg ? $pkg =~ m/DBD$/ ? "DBD::${name}"->VERSION
+				     : ${pkg}->VERSION || $name->VERSION : $];
+    my $tag = join "|" => $name, $pkg || "perl", $vsn || "";
+    #say $tag; next;
+
     foreach my $size (10, 100, 300, 1000, 10000, 100000) {
 
-	$opt_f            && $size >   300 and next;
-	$opt_l		  || $size < 50000 or  next;
+	$opt_f && $size >   300 and next;
+	$opt_l || $size < 50000 or  next;
 
 	print STDERR " $name $size                \r";
 
@@ -96,14 +110,15 @@ foreach my $r (@conf) {
 
 	my $t0 = [ gettimeofday ];
 	%hash = %plain;
-	my $elapsed = tv_interval ($t0);
-	$t{$s_size}{wr}{$name} = $s_size / $elapsed;
+	my $wv = $s_size / tv_interval ($t0);
+	$results{"$tag|wr|$s_size"} = $t{$s_size}{wr}{$name} = $wv;
+
 	$t0 = [ gettimeofday ];
 	my %x = %hash;
-	$elapsed = tv_interval ($t0);
-	$t{$s_size}{rd}{$name} = $s_size / $elapsed;
+	my $rv = $s_size / tv_interval ($t0);
+	$results{"$tag|rd|$s_size"} = $t{$s_size}{rd}{$name} = $rv;
 
-	$t{$s_size}{rd}{$name} < 275 and last; # Next size will take too long
+	$rv < 275 and last; # Next size will take too long
 	}
 
     %hash = ();
@@ -125,6 +140,8 @@ foreach my $size (sort { $a <=> $b } keys %t) {
 		print "          -";
 		}
 	    }
-	print "\n";
+	say "";
 	}
     }
+
+untie %results;
