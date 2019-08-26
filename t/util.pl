@@ -58,7 +58,7 @@ sub _dsn {
     if ($type eq "mysql" || $type eq "MariaDB") {
 	my $db = $ENV{MYSQLDB} || $user or
 	    plan skip_all => "Not a testable MariaDB/MySQL env";
-	$ENV{DBI_USER} ||= $user;
+	$ENV{DBI_USER} ||= $ENV{MYSQLUSER} || $user;
 	return "dbi:$type:database=$db";
 	}
 

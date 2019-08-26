@@ -18,15 +18,20 @@ perl:
   - "5.8"
 services:
   - postgresql
+  - mysql
 before_script:
-  - psql -c 'drop   database travis;' -U postgres || true
-  - psql -c 'create database travis;' -U postgres
+  - psql  -c 'drop   database if exists travis;' -U postgres || true
+  - psql  -c 'create database           travis;' -U postgres || true
+  - mysql -e 'drop   database if exists travis;' -u root     || true
+  - mysql -e 'create database           travis;' -u root     || true
 test:
   adapter: postgresql
   database: travis
   username: postgres
 env:
   - AUTOMATED_TESTING=1
+  - MYSQLDB=travis
+  - MYSQLUSER=root
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --auto --always-upgrade-modules
   - cpanm --quiet Time::HiRes DBI
