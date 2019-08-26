@@ -29,9 +29,10 @@ test:
   database: travis
   username: postgres
 env:
-  - AUTOMATED_TESTING=1
-  - MYSQLDB=travis
-  - MYSQLUSER=root
+  global:
+    - AUTOMATED_TESTING=1
+    - MYSQLDB=travis
+    - MYSQLUSER=root
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --auto --always-upgrade-modules
   - cpanm --quiet Time::HiRes DBI
