@@ -36,9 +36,11 @@ env:
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --auto --always-upgrade-modules
   - cpanm --quiet Time::HiRes DBI
-  - cpanm --quiet DBD::SQLite || true
-  - cpanm --quiet DBD::CSV    || true
-  - cpanm --quiet DBD::Pg     || true
+  - cpanm --quiet DBD::SQLite  || true
+  - cpanm --quiet DBD::CSV     || true
+  - cpanm --quiet DBD::Pg      || true
+  - cpanm --quiet DBD::MariaDB || true
+  - cpanm --quiet DBD::mysql   || true
 notifications:
   irc:
     channels:
