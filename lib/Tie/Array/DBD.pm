@@ -654,7 +654,7 @@ are supported by the serializer you choose. YMMV.
 are stored, but it is highly unlikely they are persistent.
 
 Also note that this module does not yet support dynamic deep structures.
-See L</Nesting and deep structures>.
+See L<Nesting and deep structures|/nesting>.
 
 =back
 
@@ -687,6 +687,7 @@ database encoding does not:
   $array[2] = pack "L>A*", time, encode "UTF-8", "Price: \x{20ac} 45.95";
 
 =head2 Nesting and deep structures
+X<nesting>
 
 C<Tie::Array::DBD> stores values as binary data. This means that
 all structure is lost when the data is stored and not available when the
