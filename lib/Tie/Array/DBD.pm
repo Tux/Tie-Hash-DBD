@@ -541,7 +541,7 @@ The tie call accepts two arguments:
 
 =head2 Database
 
-The first argument is the connection specifier.  This is either and open
+The first argument is the connection specifier.  This is either an open
 database handle or a C<DBI_DSN> string.
 
 If this argument is a valid handle, this module does not open a database
