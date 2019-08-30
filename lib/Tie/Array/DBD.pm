@@ -177,7 +177,7 @@ sub TIEARRAY {
 		$h->{_de} = sub { YAML::Load ($_[0]) };
 		}
 	    elsif ($str eq "YAML::Syck") {
-		require YAML;
+		require YAML::Syck;
 		$h->{_en} = sub { YAML::Syck::Dump ($_[0]) };
 		$h->{_de} = sub { YAML::Syck::Load ($_[0]) };
 		}
