@@ -3,7 +3,7 @@
 use 5.14.2;
 use warnings;
 
-our $VERSION = "0.10";
+our $VERSION = "0.11";
 our $CMD = $0 =~ s{.*/}{}r;
 
 sub usage {
@@ -24,10 +24,11 @@ GetOptions (
     ) or usage (1);
 
 use Data::Peek;
+use Text::CSV_XS qw( csv );
 use DB_File;
 use CDB_File;
 use Tie::Hash::DBD;
-eval "use $_" for qw( Redis::Hash GDBM_File NDBM_File ODBM_File SDBM_File );
+eval "use $_" for qw( Redis::Hash GDBM_File NDBM_File ODBM_File SDBM_File KyotoCabinet );
 my $DB_CREATE = eval "use BerkeleyDB; DB_CREATE;";
 
 use Time::HiRes qw( gettimeofday tv_interval );
@@ -47,6 +48,7 @@ my @conf = (
     [ "CDB_File",  "CDB_File",        "db.3"				],
     [ "BerkeleyDB","BerkeleyDB::Hash", -Filename => "db.4",
 				       -Flags    => $DB_CREATE,		],
+    [ "KyotoCab",  "KyotoCabinet::DB", "casket.kch"	],
     [ "Redis",     "Redis::Hash",     "dbd_"				],
     [ "Redis2",    "Redis::Hash",     "dbd2_", encoding => undef	],
     [ "SQLite",    "Tie::Hash::DBD",  "dbi:SQLite:dbname=db.1"		],
@@ -58,13 +60,9 @@ my @conf = (
     [ "Unify",     "Tie::Hash::DBD",  "dbi:Unify:"			],
     );
 
-tie my %results, "Tie::Hash::DBD", "dbi:CSV:f_ext=.csv;csv_null=1", {
-    table => "disk",
-    key   => "conf",
-    fld   => "value",
-    };
+unlink $_ for glob ("db.[0-9]*"), glob ("t_tie*.csv"), "casket.kch";
 
-unlink $_ for glob ("db.[0-9]*"), glob ("t_tie*.csv");
+my @csv = ([qw( method direction size speed )]);
 
 foreach my $r (@conf) {
     my ($name, $pkg, @args, %hash) = @$r;
@@ -80,6 +78,9 @@ foreach my $r (@conf) {
 	-d ($ENV{UNIFY}  || "\x01")      or next;
 	-d ($ENV{DBPATH} || "\x01")      or next;
 	}
+    if ($name eq "mysql" || $name eq "MariaDB") {
+	$args[0] =~ s/;user=([^;]+)// and $ENV{DBI_USER} = $1;
+	}
 
     if ($pkg) {
 	eval { tie %hash, $pkg, @args };
@@ -91,7 +92,8 @@ foreach my $r (@conf) {
 
     my $vsn = $pkg ? $pkg =~ m/DBD$/ ? "DBD::${name}"->VERSION
 				     : ${pkg}->VERSION || $name->VERSION : $];
-    my $tag = join "|" => $name, $pkg || "perl", $vsn || "";
+    my @tag = ($name, $pkg || "perl", $vsn || "");
+    my $tag = join "|" => @tag;
     #say $tag; next;
 
     foreach my $size (10, 100, 300, 1000, 10000, 100000) {
@@ -111,12 +113,14 @@ foreach my $r (@conf) {
 	my $t0 = [ gettimeofday ];
 	%hash = %plain;
 	my $wv = $s_size / tv_interval ($t0);
-	$results{"$tag|wr|$s_size"} = $t{$s_size}{wr}{$name} = $wv;
+	$t{$s_size}{wr}{$name} = $wv;
+	push @csv, [ @tag, "wr", $s_size, $wv ];
 
 	$t0 = [ gettimeofday ];
 	my %x = %hash;
 	my $rv = $s_size / tv_interval ($t0);
-	$results{"$tag|rd|$s_size"} = $t{$s_size}{rd}{$name} = $rv;
+	$t{$s_size}{rd}{$name} = $rv;
+	push @csv, [ @tag, "rd", $s_size, $rv ];
 
 	$rv < 275 and last; # Next size will take too long
 	}
@@ -144,4 +148,4 @@ foreach my $size (sort { $a <=> $b } keys %t) {
 	}
     }
 
-untie %results;
+csv (in => \@csv, out => "disk.csv");
