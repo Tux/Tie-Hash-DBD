@@ -12,8 +12,8 @@ sub persisttests {
     my ($DBD, $t) = @_;
 
     my %hash;
-    my $id  = join "_" => $t, $$, int rand 1000;
-    my $tbl = "t_tie_${id}_persist";
+    my $rnd = sprintf "%d_%04d", $$, (time + int rand 10000) % 10000;
+    my $tbl = "t_tie_${t}_${rnd}_persist";
     my $dsn = dsn ($DBD);
     eval { tie %hash, "Tie::Hash::DBD", $dsn, { tbl => $tbl } };
 
