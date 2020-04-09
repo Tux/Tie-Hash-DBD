@@ -9,6 +9,7 @@ pm_to_blib
 *.tar.gz
 *.tgz
 *.old
+*.tmp
 sandbox/Talk
 sandbox/db.[0-9]*
 sandbox/*.kch

@@ -1,0 +1,301 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Tie::Array::DBD - tie a plain array to a database table</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:hmbrand@cpan.org" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#tie">tie</a>
+    <ul>
+      <li><a href="#Database">Database</a></li>
+      <li><a href="#Options">Options</a></li>
+      <li><a href="#Encoding">Encoding</a></li>
+      <li><a href="#Nesting-and-deep-structures">Nesting and deep structures </a></li>
+    </ul>
+  </li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#drop">drop ()</a></li>
+    </ul>
+  </li>
+  <li><a href="#PREREQUISITES">PREREQUISITES</a></li>
+  <li><a href="#RESTRICTIONS-and-LIMITATIONS">RESTRICTIONS and LIMITATIONS</a></li>
+  <li><a href="#TODO">TODO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Tie::Array::DBD - tie a plain array to a database table</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DBI;
+  use Tie::Array::DBD;
+
+  my $dbh = DBI-&gt;connect (&quot;dbi:Pg:&quot;, ...);
+
+  tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:SQLite:dbname=db.tie&quot;;
+  tie my @array, &quot;Tie::Array::DBD&quot;, $dbh;
+  tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, {
+      tbl =&gt; &quot;t_tie_analysis&quot;,
+      key =&gt; &quot;h_key&quot;,
+      fld =&gt; &quot;h_value&quot;,
+      str =&gt; &quot;Storable&quot;,
+      };
+
+  $array[42] = $value;  # INSERT
+  $array[42] = 3;       # UPDATE
+  delete $array[42];    # DELETE
+  $value = $array[42];  # SELECT
+  @array = ();          # CLEAR
+
+  @array = (1..42);
+  $array[-2] = 42;
+  $_ = pop @array;
+  push @array, $_;
+  $_ = shift @array;
+  unshift @array, $_;
+  @a = splice @array, 2, -2, 5..9;
+  @k = keys   @array;   # $] &gt;= 5.011
+  @v = values @array;   # $] &gt;= 5.011</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module ties an array to a database table using <b>only</b> an <code>index</code> and a <code>value</code> field. If no tables specification is passed, this will create a temporary table with <code>h_key</code> for the key field and a <code>h_value</code> for the value field.</p>
+
+<p>I think it would make sense to merge the functionality that this module provides into <code>Tie::DBI</code>.</p>
+
+<h1 id="tie">tie</h1>
+
+<p>The tie call accepts two arguments:</p>
+
+<h2 id="Database">Database</h2>
+
+<p>The first argument is the connection specifier. This is either an open database handle or a <code>DBI_DSN</code> string.</p>
+
+<p>If this argument is a valid handle, this module does not open a database all by itself, but uses the connection provided in the handle.</p>
+
+<p>If the first argument is a scalar, it is used as DSN for DBI-&gt;connect ().</p>
+
+<p>Supported DBD drivers include DBD::Pg, DBD::SQLite, DBD::CSV, DBD::MariaDB, DBD::mysql, DBD::Oracle, DBD::Unify, and DBD::Firebird. Note that due to limitations they won&#39;t all perform equally well. Firebird is not tested anymore.</p>
+
+<p>DBD::Pg and DBD::SQLite have an unexpected great performance when server is the local system. DBD::SQLite is even almost as fast as DB_File.</p>
+
+<p>The current implementation appears to be extremely slow for CSV, as expected, mariadb/mysql, and Unify. For Unify and mariadb/mysql that is because these do not allow indexing on the key field so they cannot be set to be primary key.</p>
+
+<p>When using DBD::CSV with Text::CSV_XS version 1.02 or newer, it might be wise to disable utf8 encoding (only supported as of DBD::CSV-0.48):</p>
+
+<pre><code> &quot;dbi:CSV:f_ext=.csv/r;csv_null=1;csv_decode_utf8=0&quot;</code></pre>
+
+<h2 id="Options">Options</h2>
+
+<p>The second argument is optional and should - if passed - be a hashref to options. The following options are recognized:</p>
+
+<dl>
+
+<dt id="tbl">tbl</dt>
+<dd>
+
+<p>Defines the name of the table to be used. If none is passed, a new table is created with a unique name like <code>t_tie_dbda_42253_1</code>. When possible, the table is created as <i>temporary</i>. After the session, this table will be dropped.</p>
+
+<p>If a table name is provided, it will be checked for existence. If found, it will be used with the specified <code>key</code> and <code>fld</code>. Otherwise it will be created with <code>key</code> and <code>fld</code>, but it will not be dropped at the end of the session.</p>
+
+</dd>
+<dt id="key">key</dt>
+<dd>
+
+<p>Defines the name of the key field in the database table. The default is <code>h_key</code>.</p>
+
+</dd>
+<dt id="fld">fld</dt>
+<dd>
+
+<p>Defines the name of the value field in the database table. The default is <code>h_value</code>.</p>
+
+</dd>
+<dt id="vtp">vtp</dt>
+<dd>
+
+<p>Defines the type of the fld field in the database table. The default is depending on the underlying database and most likely some kind of BLOB.</p>
+
+</dd>
+<dt id="str">str</dt>
+<dd>
+
+<p>Defines the required persistence module. Currently supports the use of <code>Storable</code>, <code>Sereal</code>, <code>JSON</code>, <code>JSON::Syck</code>, <code>YAML</code>, <code>YAML::Syck</code> and <code>XML::Dumper</code>.</p>
+
+<p>The default is undefined.</p>
+
+<p>Passing any other value will cause a <code>croak</code>.</p>
+
+<p>If you want to preserve Encoding on the hash values, you should use this feature. (except where <code>PV8</code> has a <code>-</code> in the table below)</p>
+
+<p>Here is a table of supported data types given a data structure like this:</p>
+
+<pre><code>    my %deep = (
+        UND =&gt; undef,
+        IV  =&gt; 1,
+        NV  =&gt; 3.14159265358979,
+        PV  =&gt; &quot;string&quot;,
+        PV8 =&gt; &quot;ab\ncd\x{20ac}\t&quot;,
+        PVM =&gt; $!,
+        RV  =&gt; \$DBD,
+        AR  =&gt; [ 1..2 ],
+        HR  =&gt; { key =&gt; &quot;value&quot; },
+        OBJ =&gt; ( bless { auto_diag =&gt; 1 }, &quot;Text::CSV_XS&quot; ),
+        RX  =&gt; qr{^re[gG]e?x},
+        FMT =&gt; *{$::{STDOUT}}{FORMAT},
+        CR  =&gt; sub { &quot;code&quot;; },
+        GLB =&gt; *STDERR,
+        IO  =&gt; *{$::{STDERR}}{IO},
+        );
+
+              UND  IV  NV  PV PV8 PVM  RV  AR  HR OBJ  RX FMT  CR GLB  IO
+ No streamer   x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+ Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+ Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
+ JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+ JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
+ YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
+ YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
+ XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
+ FreezeThaw    x   x   x   x   -   x   x   x   x   x   -   x   -   x   -
+ Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -</code></pre>
+
+<p>So, <code>Storable</code> does not support persistence of types <code>CODE</code>, <code>REGEXP</code>, <code>FORMAT</code>, <code>IO</code>, and <code>GLOB</code>. Be sure to test if all of your data types are supported by the serializer you choose. YMMV.</p>
+
+<p>&quot;No streamer&quot; might work inside the current process if reference values are stored, but it is highly unlikely they are persistent.</p>
+
+<p>Also note that this module does not yet support dynamic deep structures. See <a href="#nesting">Nesting and deep structures</a>.</p>
+
+</dd>
+</dl>
+
+<h2 id="Encoding">Encoding</h2>
+
+<p><code>Tie::Array::DBD</code> stores values as binary data. This means that all Encoding and magic is lost when the data is stored, and thus is also not available when the data is restored, hence all internal information about the data is also lost, which includes the <code>UTF8</code> flag.</p>
+
+<p>If you want to preserve the <code>UTF8</code> flag you will need to store internal flags and use the streamer option:</p>
+
+<pre><code>  tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
+
+<p>If you do not want the performance impact of Storable just to be able to store and retrieve UTF-8 values, there are two ways to do so:</p>
+
+<pre><code>  # Use utf-8 from database
+  tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;, { vtp =&gt; &quot;text&quot; };
+  $array[2] = &quot;The teddybear costs \x{20ac} 45.95&quot;;
+
+  # use Encode
+  tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;;
+  $array[2] = encode &quot;UTF-8&quot;, &quot;The teddybear costs \x{20ac} 45.95&quot;;</code></pre>
+
+<p>Note that using Encode will allow other binary data too where using the database encoding does not:</p>
+
+<pre><code>  $array[2] = pack &quot;L&gt;A*&quot;, time, encode &quot;UTF-8&quot;, &quot;Price: \x{20ac} 45.95&quot;;</code></pre>
+
+<h2 id="Nesting-and-deep-structures">Nesting and deep structures </h2>
+
+<p><code>Tie::Array::DBD</code> stores values as binary data. This means that all structure is lost when the data is stored and not available when the data is restored. To maintain deep structures, use the streamer option:</p>
+
+<pre><code>  tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
+
+<p>Note that changes inside deep structures do not work. See <a href="#TODO">&quot;TODO&quot;</a>.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="drop">drop ()</h2>
+
+<p>If a table was used with persistence, the table will not be dropped when the <code>untie</code> is called. Dropping can be forced using the <code>drop</code> method at any moment while the array is tied:</p>
+
+<pre><code>  (tied @array)-&gt;drop;</code></pre>
+
+<h1 id="PREREQUISITES">PREREQUISITES</h1>
+
+<p>The only real prerequisite is DBI but of course that uses the DBD driver of your choice. Some drivers are (very) actively maintained. Be sure to to use recent Modules. DBD::SQLite for example seems to require version 1.29 or up.</p>
+
+<h1 id="RESTRICTIONS-and-LIMITATIONS">RESTRICTIONS and LIMITATIONS</h1>
+
+<ul>
+
+<li><p><code>DBD::Oracle</code> limits the size of BLOB-reads to 4kb by default, which is too small for reasonable data structures. Tie::Array::DBD locally raises this value to 4Mb, which is still an arbitrary limit.</p>
+
+</li>
+<li><p><code>Storable</code> does not support persistence of perl types <code>IO</code>, <code>REGEXP</code>, <code>CODE</code>, <code>FORMAT</code>, and <code>GLOB</code>. Future extensions might implement some alternative streaming modules, like <code>Data::Dump::Streamer</code> or use mixin approaches that enable you to fit in your own.</p>
+
+</li>
+<li><p>Note that neither DBD::CSV nor DBD::Unify support <code>AutoCommit</code>.</p>
+
+</li>
+<li><p>For now, Firebird does not support <code>TEXT</code> (or <code>CLOB</code>) in DBD::Firebird at a level required by Tie::Array::DBD.</p>
+
+<p>Firebird support is stalled.</p>
+
+</li>
+</ul>
+
+<h1 id="TODO">TODO</h1>
+
+<dl>
+
+<dt id="Update-on-deep-changes">Update on deep changes</dt>
+<dd>
+
+<p>Currently, nested structures do not get updated when it is an change in a deeper part.</p>
+
+<pre><code>  tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, { str =&gt; &quot;Storable&quot; };
+
+  @array = (
+      [ 1, &quot;foo&quot; ],
+      [ 2, &quot;bar&quot; ],
+      );
+
+  $array[1][0]++; # No effect :(</code></pre>
+
+</dd>
+<dt id="Documentation">Documentation</dt>
+<dd>
+
+<p>Better document what the implications are of storing <i>data</i> content in a database and restoring that. It will not be fool proof.</p>
+
+</dd>
+<dt id="Mixins">Mixins</dt>
+<dd>
+
+<p>Maybe: implement a feature that would enable plugins or mixins to do the streaming or preservation of other data attributes.</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>H.Merijn Brand &lt;h.m.brand@xs4all.nl&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2010-2020 H.Merijn Brand</p>
+
+<p>This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal, JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw</p>
+
+
+</body>
+
+</html>
+
+
