@@ -65,10 +65,10 @@ test_requires:
 recommends:
     DBI:                 1.643
     DBD::SQLite:         1.64
-    DBD::Pg:             3.10.5
+    DBD::Pg:             3.13.0
     DBD::CSV:            0.54
 test_recommends:
-    Test::More:          1.302174
+    Test::More:          1.302175
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          https://github.com/Tux/Tie-Hash-DBD
