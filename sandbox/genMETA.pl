@@ -72,6 +72,7 @@ test_recommends:
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          https://github.com/Tux/Tie-Hash-DBD
+    bugtracker:          https://github.com/Tux/Tie-Hash-DBD/issues
 meta-spec:
     version:             1.4
     url:                 http://module-build.sourceforge.net/META-spec-v1.4.html
