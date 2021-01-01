@@ -1,6 +1,6 @@
 package Tie::Array::DBD;
 
-our $VERSION = "0.22";
+our $VERSION = "0.23";
 
 use strict;
 use warnings;
@@ -780,7 +780,7 @@ H.Merijn Brand <h.m.brand@xs4all.nl>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010-2020 H.Merijn Brand
+Copyright (C) 2010-2021 H.Merijn Brand
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
