@@ -68,7 +68,7 @@ my @conf = (
 
 unlink $_ for glob ("db.[0-9]*"), glob ("t_tie*.csv"), "casket.kch";
 
-my @csv = ([qw( method direction size speed )]);
+my @csv = ([qw( method module version direction size speed )]);
 
 foreach my $r (@conf) {
     my ($name, $pkg, @args, %hash, @array, $rv) = @$r;
