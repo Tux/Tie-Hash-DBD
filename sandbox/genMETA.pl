@@ -66,7 +66,7 @@ recommends:
     DBI:                 1.643
     DBD::SQLite:         1.66
     DBD::Pg:             3.14.2
-    DBD::CSV:            0.57
+    DBD::CSV:            0.58
 test_recommends:
     Test::More:          1.302183
 resources:
