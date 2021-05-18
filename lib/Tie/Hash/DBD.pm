@@ -228,7 +228,7 @@ sub TIEHASH {
 
     my $tbl = $h->{tbl};
 
-    $h->{ins} = $dbh->prepare ("insert into $tbl values (?, ?)");
+    $h->{ins} = $dbh->prepare ("insert into $tbl ($f_k, $f_v) values (?, ?)");
     $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
     $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?");
     $h->{sel} = $dbh->prepare ("select $f_v from $tbl where $f_k = ?");

@@ -1,5 +1,6 @@
-0.23	- 01 Jan 2021, H.Merijn Brand
+0.23	- 18 May 2021, H.Merijn Brand
     * It's 2021
+    * Enable use of tables with extra fields
 
 0.22	- 21 Dec 2020, H.Merijn Brand
     * Try to make persist tests use more unique table names
