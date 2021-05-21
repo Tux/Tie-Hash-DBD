@@ -3,7 +3,7 @@
 use 5.14.2;
 use warnings;
 
-our $VERSION = "0.12";
+our $VERSION = "0.13";
 our $CMD = $0 =~ s{.*/}{}r;
 
 sub usage {
@@ -32,6 +32,7 @@ use Tie::Hash::DBD;
 use Tie::Array::DBD;
 eval "use $_" for qw( GDBM_File NDBM_File ODBM_File SDBM_File
 		      Redis::Hash Redis::Fast::Hash
+		      Redis::List Redis::Fast::List
 		      KyotoCabinet );
 my $DB_CREATE = eval "use BerkeleyDB; DB_CREATE;";
 
@@ -77,16 +78,24 @@ foreach my $r (@conf) {
     local $ENV{DBI_PASS} = $ENV{DBI_PASS};
 
     if ($opt_a && $pkg) {
-	$pkg =~ s/::Hash::/::Array::/    or next;
+	if ($name eq "BerkeleyDB") {
+	    $pkg =~ s/::Hash/::Recno/     or next;
+	    }
+	elsif ($name =~ m/^Redis/) {
+	    $pkg =~ s/::Hash/::List/      or next;
+	    }
+	else {
+	    $pkg =~ s/::Hash::/::Array::/ or next;
+	    }
 	}
 
     if ($name eq "Oracle") {
-	-d ($ENV{ORACLE_HOME} || "\x01") or next;
+	-d ($ENV{ORACLE_HOME} || "\x01")  or next;
 	@ENV{qw( DBI_USER DBI_PASS )} = split m{/} => $ENV{ORACLE_USERID};
 	}
     if ($name eq "Unify") {
-	-d ($ENV{UNIFY}  || "\x01")      or next;
-	-d ($ENV{DBPATH} || "\x01")      or next;
+	-d ($ENV{UNIFY}  || "\x01")       or next;
+	-d ($ENV{DBPATH} || "\x01")       or next;
 	}
     if ($name eq "mysql" || $name eq "MariaDB") {
 	$args[0] =~ s/;user=([^;]+)// and $ENV{DBI_USER} = $1;
