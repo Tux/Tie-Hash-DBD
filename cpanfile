@@ -3,8 +3,8 @@ requires   "DBI"                      => "1.613";
 requires   "Storable";
 
 recommends "DBD::CSV"                 => "0.58";
-recommends "DBD::Pg"                  => "3.14.2";
-recommends "DBD::SQLite"              => "1.66";
+recommends "DBD::Pg"                  => "3.15.0";
+recommends "DBD::SQLite"              => "1.70";
 recommends "DBI"                      => "1.643";
 
 on "configure" => sub {
@@ -16,5 +16,5 @@ on "test" => sub {
     requires   "Test::More"               => "0.90";
     requires   "Time::HiRes";
 
-    recommends "Test::More"               => "1.302183";
+    recommends "Test::More"               => "1.302186";
     };

@@ -42,35 +42,35 @@
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<pre><code>  use DBI;
-  use Tie::Array::DBD;
+<pre><code>use DBI;
+use Tie::Array::DBD;
 
-  my $dbh = DBI-&gt;connect (&quot;dbi:Pg:&quot;, ...);
+my $dbh = DBI-&gt;connect (&quot;dbi:Pg:&quot;, ...);
 
-  tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:SQLite:dbname=db.tie&quot;;
-  tie my @array, &quot;Tie::Array::DBD&quot;, $dbh;
-  tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, {
-      tbl =&gt; &quot;t_tie_analysis&quot;,
-      key =&gt; &quot;h_key&quot;,
-      fld =&gt; &quot;h_value&quot;,
-      str =&gt; &quot;Storable&quot;,
-      };
+tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:SQLite:dbname=db.tie&quot;;
+tie my @array, &quot;Tie::Array::DBD&quot;, $dbh;
+tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, {
+    tbl =&gt; &quot;t_tie_analysis&quot;,
+    key =&gt; &quot;h_key&quot;,
+    fld =&gt; &quot;h_value&quot;,
+    str =&gt; &quot;Storable&quot;,
+    };
 
-  $array[42] = $value;  # INSERT
-  $array[42] = 3;       # UPDATE
-  delete $array[42];    # DELETE
-  $value = $array[42];  # SELECT
-  @array = ();          # CLEAR
+$array[42] = $value;  # INSERT
+$array[42] = 3;       # UPDATE
+delete $array[42];    # DELETE
+$value = $array[42];  # SELECT
+@array = ();          # CLEAR
 
-  @array = (1..42);
-  $array[-2] = 42;
-  $_ = pop @array;
-  push @array, $_;
-  $_ = shift @array;
-  unshift @array, $_;
-  @a = splice @array, 2, -2, 5..9;
-  @k = keys   @array;   # $] &gt;= 5.011
-  @v = values @array;   # $] &gt;= 5.011</code></pre>
+@array = (1..42);
+$array[-2] = 42;
+$_ = pop @array;
+push @array, $_;
+$_ = shift @array;
+unshift @array, $_;
+@a = splice @array, 2, -2, 5..9;
+@k = keys   @array;   # $] &gt;= 5.011
+@v = values @array;   # $] &gt;= 5.011</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -98,7 +98,7 @@
 
 <p>When using DBD::CSV with Text::CSV_XS version 1.02 or newer, it might be wise to disable utf8 encoding (only supported as of DBD::CSV-0.48):</p>
 
-<pre><code> &quot;dbi:CSV:f_ext=.csv/r;csv_null=1;csv_decode_utf8=0&quot;</code></pre>
+<pre><code>&quot;dbi:CSV:f_ext=.csv/r;csv_null=1;csv_decode_utf8=0&quot;</code></pre>
 
 <h2 id="Options">Options</h2>
 
@@ -145,35 +145,35 @@
 
 <p>Here is a table of supported data types given a data structure like this:</p>
 
-<pre><code>    my %deep = (
-        UND =&gt; undef,
-        IV  =&gt; 1,
-        NV  =&gt; 3.14159265358979,
-        PV  =&gt; &quot;string&quot;,
-        PV8 =&gt; &quot;ab\ncd\x{20ac}\t&quot;,
-        PVM =&gt; $!,
-        RV  =&gt; \$DBD,
-        AR  =&gt; [ 1..2 ],
-        HR  =&gt; { key =&gt; &quot;value&quot; },
-        OBJ =&gt; ( bless { auto_diag =&gt; 1 }, &quot;Text::CSV_XS&quot; ),
-        RX  =&gt; qr{^re[gG]e?x},
-        FMT =&gt; *{$::{STDOUT}}{FORMAT},
-        CR  =&gt; sub { &quot;code&quot;; },
-        GLB =&gt; *STDERR,
-        IO  =&gt; *{$::{STDERR}}{IO},
-        );
+<pre><code>   my %deep = (
+       UND =&gt; undef,
+       IV  =&gt; 1,
+       NV  =&gt; 3.14159265358979,
+       PV  =&gt; &quot;string&quot;,
+       PV8 =&gt; &quot;ab\ncd\x{20ac}\t&quot;,
+       PVM =&gt; $!,
+       RV  =&gt; \$DBD,
+       AR  =&gt; [ 1..2 ],
+       HR  =&gt; { key =&gt; &quot;value&quot; },
+       OBJ =&gt; ( bless { auto_diag =&gt; 1 }, &quot;Text::CSV_XS&quot; ),
+       RX  =&gt; qr{^re[gG]e?x},
+       FMT =&gt; *{$::{STDOUT}}{FORMAT},
+       CR  =&gt; sub { &quot;code&quot;; },
+       GLB =&gt; *STDERR,
+       IO  =&gt; *{$::{STDERR}}{IO},
+       );
 
-              UND  IV  NV  PV PV8 PVM  RV  AR  HR OBJ  RX FMT  CR GLB  IO
- No streamer   x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
- Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
- Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
- JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
- JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
- YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
- YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
- XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
- FreezeThaw    x   x   x   x   -   x   x   x   x   x   -   x   -   x   -
- Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -</code></pre>
+             UND  IV  NV  PV PV8 PVM  RV  AR  HR OBJ  RX FMT  CR GLB  IO
+No streamer   x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
+Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
+JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
+YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
+YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
+XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
+FreezeThaw    x   x   x   x   -   x   x   x   x   x   -   x   -   x   -
+Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -</code></pre>
 
 <p>So, <code>Storable</code> does not support persistence of types <code>CODE</code>, <code>REGEXP</code>, <code>FORMAT</code>, <code>IO</code>, and <code>GLOB</code>. Be sure to test if all of your data types are supported by the serializer you choose. YMMV.</p>
 
@@ -190,27 +190,27 @@
 
 <p>If you want to preserve the <code>UTF8</code> flag you will need to store internal flags and use the streamer option:</p>
 
-<pre><code>  tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
+<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
 
 <p>If you do not want the performance impact of Storable just to be able to store and retrieve UTF-8 values, there are two ways to do so:</p>
 
-<pre><code>  # Use utf-8 from database
-  tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;, { vtp =&gt; &quot;text&quot; };
-  $array[2] = &quot;The teddybear costs \x{20ac} 45.95&quot;;
+<pre><code># Use utf-8 from database
+tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;, { vtp =&gt; &quot;text&quot; };
+$array[2] = &quot;The teddybear costs \x{20ac} 45.95&quot;;
 
-  # use Encode
-  tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;;
-  $array[2] = encode &quot;UTF-8&quot;, &quot;The teddybear costs \x{20ac} 45.95&quot;;</code></pre>
+# use Encode
+tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;;
+$array[2] = encode &quot;UTF-8&quot;, &quot;The teddybear costs \x{20ac} 45.95&quot;;</code></pre>
 
 <p>Note that using Encode will allow other binary data too where using the database encoding does not:</p>
 
-<pre><code>  $array[2] = pack &quot;L&gt;A*&quot;, time, encode &quot;UTF-8&quot;, &quot;Price: \x{20ac} 45.95&quot;;</code></pre>
+<pre><code>$array[2] = pack &quot;L&gt;A*&quot;, time, encode &quot;UTF-8&quot;, &quot;Price: \x{20ac} 45.95&quot;;</code></pre>
 
 <h2 id="Nesting-and-deep-structures">Nesting and deep structures </h2>
 
 <p><code>Tie::Array::DBD</code> stores values as binary data. This means that all structure is lost when the data is stored and not available when the data is restored. To maintain deep structures, use the streamer option:</p>
 
-<pre><code>  tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
+<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
 
 <p>Note that changes inside deep structures do not work. See <a href="#TODO">&quot;TODO&quot;</a>.</p>
 
@@ -220,7 +220,7 @@
 
 <p>If a table was used with persistence, the table will not be dropped when the <code>untie</code> is called. Dropping can be forced using the <code>drop</code> method at any moment while the array is tied:</p>
 
-<pre><code>  (tied @array)-&gt;drop;</code></pre>
+<pre><code>(tied @array)-&gt;drop;</code></pre>
 
 <h1 id="PREREQUISITES">PREREQUISITES</h1>
 
@@ -255,14 +255,14 @@
 
 <p>Currently, nested structures do not get updated when it is an change in a deeper part.</p>
 
-<pre><code>  tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, { str =&gt; &quot;Storable&quot; };
+<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, { str =&gt; &quot;Storable&quot; };
 
-  @array = (
-      [ 1, &quot;foo&quot; ],
-      [ 2, &quot;bar&quot; ],
-      );
+@array = (
+    [ 1, &quot;foo&quot; ],
+    [ 2, &quot;bar&quot; ],
+    );
 
-  $array[1][0]++; # No effect :(</code></pre>
+$array[1][0]++; # No effect :(</code></pre>
 
 </dd>
 <dt id="Documentation">Documentation</dt>
