@@ -3,12 +3,12 @@
 use 5.14.2;
 use warnings;
 
-our $VERSION = "0.13";
+our $VERSION = "0.14 - 20211113";
 our $CMD = $0 =~ s{.*/}{}r;
 
 sub usage {
     my $err = shift and select STDERR;
-    say "usage: $CMD [--verbose[=<level>]] [--fast | --long]";
+    say "usage: $CMD [--verbose[=<level>]] [--fast | --long] [--no-dbd] [pattern]";
     exit $err;
     } # usage
 
@@ -21,16 +21,21 @@ GetOptions (
     "f|s|fast|short!"	=> \ my $opt_f,
     "l|long|slow!"	=> \ my $opt_l,
 
+    "d|dbd!"		=> \(my $opt_dbd = 1),
+
     "v|verbose:2"	=> \(my $opt_v = 1),
     ) or usage (1);
+
+my $pattern = shift // ".";
+   $pattern = qr{$pattern}i;
 
 use Data::Peek;
 use Text::CSV_XS qw( csv );
 use DB_File;
-use CDB_File;
 use Tie::Hash::DBD;
 use Tie::Array::DBD;
 eval "use $_" for qw( GDBM_File NDBM_File ODBM_File SDBM_File
+		      CDB_File LMDB_File
 		      Redis::Hash Redis::Fast::Hash
 		      Redis::List Redis::Fast::List
 		      KyotoCabinet );
@@ -43,7 +48,7 @@ my $u = $ENV{LOGNAME} || $ENV{USER} || getpwuid $<;
 my %t;
 
 my @conf = (
-    [ "perl",      undef,              undef				],
+    [ "perl",      "",                 undef				],
 
     [ "GDBM",      "GDBM_File",        "db.8", O_RDWR|O_CREAT, 0666	],
     [ "NDBM",      "NDBM_File",        "db.7", O_RDWR|O_CREAT, 0666	],
@@ -51,6 +56,7 @@ my @conf = (
     [ "SDBM",      "SDBM_File",        "db.5", O_RDWR|O_CREAT, 0666	],
     [ "DB_File",   "DB_File",          "db.2", O_RDWR|O_CREAT, 0666	],
     [ "CDB_File",  "CDB_File",         "db.3"				],
+    [ "LMDB_File", "LMDB_File",        "db.9"				],
     [ "BerkeleyDB","BerkeleyDB::Hash", -Filename => "db.4",
 				       -Flags    => $DB_CREATE,		],
     [ "KyotoCab",  "KyotoCabinet::DB", "casket.kch"	],
@@ -73,6 +79,9 @@ my @csv = ([qw( method module version direction size speed )]);
 
 foreach my $r (@conf) {
     my ($name, $pkg, @args, %hash, @array, $rv) = @$r;
+
+    $name =~ m/$pattern/ || $pkg =~ m/$pattern/ or next;
+    !$opt_dbd && $pkg =~ m/DBD$/ and next;
 
     local $ENV{DBI_USER} = $ENV{DBI_USER};
     local $ENV{DBI_PASS} = $ENV{DBI_PASS};
@@ -99,6 +108,13 @@ foreach my $r (@conf) {
 	}
     if ($name eq "mysql" || $name eq "MariaDB") {
 	$args[0] =~ s/;user=([^;]+)// and $ENV{DBI_USER} = $1;
+	}
+    if ($name eq "LMDB_File" and $LMDB_File::VERSION) {
+	no strict "subs";
+	my $dbf = $args[0];
+	unlink $_ for glob "$dbf/*"; rmdir $dbf;
+	mkdir $dbf;
+	@args = LMDB::Env->new ($dbf, { mapsize => 0x4000000 });
 	}
 
     if ($pkg) {
