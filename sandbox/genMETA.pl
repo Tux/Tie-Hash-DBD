@@ -64,9 +64,9 @@ test_requires:
     Time::HiRes:         0
 recommends:
     DBI:                 1.643
-    DBD::SQLite:         1.70
+    DBD::SQLite:         1.72
     DBD::Pg:             3.16.0
-    DBD::CSV:            0.59
+    DBD::CSV:            0.60
 test_recommends:
     Test::More:          1.302191
 resources:
