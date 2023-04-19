@@ -173,10 +173,28 @@ sub TIEARRAY {
 		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
 		$h->{_de} = sub {       $j->decode ($_[0]) };
 		}
+	    elsif ($str eq "JSON::MaybeXS") {
+		require JSON::MaybeXS;
+		my $j = JSON::MaybeXS->new->allow_nonref;
+		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
+		$h->{_de} = sub {       $j->decode ($_[0]) };
+		}
+	    elsif ($str eq "JSON::SIMD") {
+		require JSON::SIMD;
+		my $j = JSON::SIMD->new->allow_nonref;
+		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
+		$h->{_de} = sub {       $j->decode ($_[0]) };
+		}
 	    elsif ($str eq "JSON::Syck") {
 		require JSON::Syck;
 		$h->{_en} = sub { JSON::Syck::Dump ($_[0]) };
 		$h->{_de} = sub { JSON::Syck::Load ($_[0]) };
+		}
+	    elsif ($str eq "JSON::XS") {
+		require JSON::XS;
+		my $j = JSON::XS->new->allow_nonref;
+		$h->{_en} = sub { $j->utf8->encode ($_[0]) };
+		$h->{_de} = sub {       $j->decode ($_[0]) };
 		}
 	    elsif ($str eq "YAML") {
 		require YAML;
@@ -658,8 +676,8 @@ and the action is ignored.
 =item str
 
 Defines the required persistence module.   Currently supports the use of
-C<Storable>, C<Sereal>,  C<JSON>, C<JSON::Syck>,  C<YAML>, C<YAML::Syck>
-and C<XML::Dumper>.
+C<Storable>, C<Sereal>, C<JSON>, C<JSON::MaybeXS>, C<JSON::SIMD>,
+C<JSON::Syck>, C<JSON::XS>, C<YAML>, C<YAML::Syck> and C<XML::Dumper>.
 
 The default is undefined.
 
@@ -693,7 +711,10 @@ Here is a table of supported data types given a data structure like this:
  Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
  Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
  JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+ JSON::MaybeXS x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+ JSON::SIMD    x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
  JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
+ JSON::XS      x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
  YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
  YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
  XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
@@ -722,7 +743,7 @@ about the data is also lost, which includes the C<UTF8> flag.
 If you want to preserve the C<UTF8> flag you will need to store internal
 flags and use the streamer option:
 
-  tie my @array, "Tie::Array::DBD", { str => "Storable" };
+  tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 
 If you do not want the performance impact of Storable just to be able to
 store and retrieve UTF-8 values, there are two ways to do so:
@@ -747,7 +768,7 @@ C<Tie::Array::DBD> stores values as binary data. This means that
 all structure is lost when the data is stored and not available when the
 data is restored. To maintain deep structures, use the streamer option:
 
-  tie my @array, "Tie::Array::DBD", { str => "Storable" };
+  tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 
 Note that changes inside deep structures do not work. See L</TODO>.
 
@@ -842,7 +863,8 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal,
-JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw
+JSON, JSON::MaybeXS, JSON::SIMD, JSON::Syck, JSON::XS, YAML, YAML::Syck,
+XML::Dumper, Bencode, FreezeThaw
 
 =cut
 
