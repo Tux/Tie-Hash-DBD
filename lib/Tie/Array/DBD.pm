@@ -68,6 +68,12 @@ my %DB = (
 	},
     );
 
+sub _ro_fail {
+    my ($self, $action) = @_;
+    my $error = "You cannot $action when in read-only mode";
+    $self->{ro} == 1 ? warn $error : die $error;
+    } # ro_fail
+
 sub _create_table {
     my ($cnf, $tmp) = @_;
     $cnf->{tmp} = $tmp;
@@ -85,10 +91,7 @@ sub _create_table {
 	};
     $exists and return;	# Table already exists
 
-    if ($cnf->{ro}) {
-	carp "You cannot create tables when in read-only mode";
-	return;
-	}
+    $cnf->{ro} and return _ro_fail ($cnf, "create tables");
     my $temp = $DB{$dbt}{temp};
     $cnf->{tmp} or $temp = "";
     local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
@@ -298,10 +301,7 @@ sub _setmax {
 
 sub STORE {
     my ($self, $key, $value) = @_;
-    if ($self->{ro}) {
-	carp "You cannot store entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "store entries");
     my $v = $self->_stream ($value);
     $self->EXISTS ($key)
 	? $self->{upd}->execute ($v, $key)
@@ -311,10 +311,7 @@ sub STORE {
 
 sub DELETE {
     my ($self, $key) = @_;
-    if ($self->{ro}) {
-	carp "You cannot delete entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "delete entries");
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
     $self->{del}->execute ($key);
@@ -324,10 +321,7 @@ sub DELETE {
 
 sub STORESIZE {
     my ($self, $size) = @_; # $size = $# + 1
-    if ($self->{ro}) {
-	carp "You cannot resize entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "resize an array");
     $size--;
     $self->{dbh}->do ("delete from $self->{tbl} where $self->{f_k} > $size");
     $self->{max} = $size;
@@ -335,10 +329,7 @@ sub STORESIZE {
 
 sub CLEAR {
     my $self = shift;
-    if ($self->{ro}) {
-	carp "You cannot clear entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "clear an array");
     $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     $self->{max} = -1;
     } # CLEAR
@@ -360,30 +351,21 @@ sub FETCH {
 
 sub PUSH {
     my ($self, @val) = @_;
-    if ($self->{ro}) {
-	carp "You cannot push entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "push entries");
     $self->STORE (++$self->{max}, $_) for @val;
     return $self->FETCHSIZE;
     } # PUSH
 
 sub POP {
     my $self = shift;
-    if ($self->{ro}) {
-	carp "You cannot pop entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "pop entries");
     $self->{max} >= 0 or return;
     $self->DELETE ($self->{max});
     } # POP
 
 sub SHIFT {
     my $self = shift;
-    if ($self->{ro}) {
-	carp "You cannot shift entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "shift entries");
     my $val  = $self->DELETE (0);
     $self->{uky}->execute ($_ - 1, $_) for 1 .. $self->{max};
     $self->{max}--;
@@ -393,10 +375,7 @@ sub SHIFT {
 sub UNSHIFT {
     my ($self, @val) = @_;
     @val or return;
-    if ($self->{ro}) {
-	carp "You cannot unshift entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "unshift entries");
     my $incr = scalar @val;
     $self->{uky}->execute ($_ + $incr, $_) for reverse 0 .. $self->{max};
     $self->{max} += $incr;
@@ -430,10 +409,7 @@ sub SPLICE {
     my $nargs = $#_;
     my ($self, $off, $len, @new, @val) = @_;
 
-    if ($self->{ro}) {
-	carp "You cannot splice entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "splice entries");
     # splice @array;
     if ($nargs == 0) {
 	if (wantarray) {
@@ -514,6 +490,12 @@ sub drop {
     $self->{tmp} = 1;
     } # drop
 
+sub readonly {
+    my $self = shift;
+    @_ and $self->{ro} = shift;
+    return $self->{ro};
+    } # readonly
+
 sub _dump_table {
     my $self = shift;
     my $sth = $self->{dbh}->prepare ("select $self->{f_k}, $self->{f_v} from $self->{tbl} order by $self->{f_k}");
@@ -536,10 +518,7 @@ sub DESTROY {
     delete $self->{$_} for qw( _de _en );
     if ($self->{tmp}) {
 	$dbh->{AutoCommit} or $dbh->rollback;
-	if ($self->{ro}) { # Unlikely, but just to be sure
-	    carp "You cannot drop tables when in read-only mode";
-	    return;
-	    }
+	$self->{ro} and return _ro_fail ($self, "drop tables");
 	$dbh->do ("drop table ".$self->{tbl});
 	}
     $dbh->{AutoCommit} or $dbh->commit;
@@ -588,6 +567,10 @@ Tie::Array::DBD - tie a plain array to a database table
   @a = splice @array, 2, -2, 5..9;
   @k = keys   @array;   # $] >= 5.011
   @v = values @array;   # $] >= 5.011
+
+  my $readonly = tied (@array)->readonly ();
+  tied (@array)->readonly (1);
+  $array[4] = 42; # FAIL
 
 =head1 DESCRIPTION
 
@@ -780,7 +763,33 @@ If a table was used with persistence, the table will not be dropped when
 the C<untie> is called.  Dropping can be forced using the C<drop> method
 at any moment while the array is tied:
 
-  (tied @array)->drop;
+  tied (@array)->drop;
+
+=head2 readonly
+
+You can inquire or set the readonly status of the bound array. Note that
+setting read-only als forbids to delete generated temporary table.
+
+  my $readonly = tied (@array)->readonly ();
+  tied (@array)->readonly (1);
+
+Setting read-only accepts 3 states:
+
+=over 2
+
+=item false (C<undef>, C<"">, C<0>)
+
+This will (re)set the array to read-write.
+
+=item C<1>
+
+This will set read-only. When attempting to make changes, a warning is given.
+
+=item C<2>
+
+This will set read-only. When attempting to make changes, the process will die.
+
+=back
 
 =head1 PREREQUISITES
 

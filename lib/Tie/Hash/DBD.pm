@@ -74,6 +74,12 @@ my %DB = (
 	},
     );
 
+sub _ro_fail {
+    my ($self, $action) = @_;
+    my $error = "You cannot $action when in read-only mode";
+    $self->{ro} == 1 ? warn $error : die $error;
+    } # ro_fail
+
 sub _create_table {
     my ($cnf, $tmp) = @_;
     $cnf->{tmp} = $tmp;
@@ -91,10 +97,7 @@ sub _create_table {
 	};
     $exists and return;	# Table already exists
 
-    if ($cnf->{ro}) {
-	carp "You cannot create tables when in read-only mode";
-	return;
-	}
+    $cnf->{ro} and return _ro_fail ($cnf, "create tables");
     my $temp = $DB{$dbt}{temp};
     $cnf->{tmp} or $temp = "";
     local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
@@ -295,10 +298,7 @@ sub _unstream {
 
 sub STORE {
     my ($self, $key, $value) = @_;
-    if ($self->{ro}) {
-	carp "You cannot store entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "store entries");
     my $k = $self->{asc} ? unpack "H*", $key : $key;
     my $v = $self->_stream ($value);
     $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
@@ -311,10 +311,7 @@ sub STORE {
 
 sub DELETE {
     my ($self, $key) = @_;
-    if ($self->{ro}) {
-	carp "You cannot delete entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "delete entries");
     $self->{asc} and $key = unpack "H*", $key;
     $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
     $self->{sel}->execute ($key);
@@ -331,10 +328,7 @@ sub DELETE {
 
 sub CLEAR {
     my $self = shift;
-    if ($self->{ro}) {
-	carp "You cannot clear entries when in read-only mode";
-	return;
-	}
+    $self->{ro} and return _ro_fail ($self, "clear entries");
     $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     } # CLEAR
 
@@ -389,6 +383,12 @@ sub drop {
     $self->{tmp} = 1;
     } # drop
 
+sub readonly {
+    my $self = shift;
+    @_ and $self->{ro} = shift;
+    return $self->{ro};
+    } # readonly
+
 sub DESTROY {
     my $self = shift;
     my $dbh = $self->{dbh} or return;
@@ -401,10 +401,7 @@ sub DESTROY {
     delete $self->{$_} for qw( _de _en );
     if ($self->{tmp}) {
 	$dbh->{AutoCommit} or $dbh->rollback;
-	if ($self->{ro}) { # Unlikely, but just to be sure
-	    carp "You cannot drop tables when in read-only mode";
-	    return;
-	    }
+	$self->{ro} and return _ro_fail ($self, "drop tables");
 	$dbh->do ("drop table ".$self->{tbl});
 	}
     $dbh->{AutoCommit} or $dbh->commit;
@@ -444,6 +441,10 @@ Tie::Hash::DBD - tie a plain hash to a database table
   delete $hash{key};    # DELETE
   $value = $hash{key};  # SELECT
   %hash = ();           # CLEAR
+
+  my $readonly = tied (%hash)->readonly ();
+  tied (%hash)->readonly (1);
+  $hash{foo} = 42; # FAIL
 
 =head1 DESCRIPTION
 
@@ -665,7 +666,33 @@ If a table was used with persistence, the table will not be dropped when
 the C<untie> is called.  Dropping can be forced using the C<drop> method
 at any moment while the hash is tied:
 
-  (tied %hash)->drop;
+  tied (%hash)->drop;
+
+=head2 readonly
+
+You can inquire or set the readonly status of the bound hash. Note that
+setting read-only als forbids to delete generated temporary table.
+
+  my $readonly = tied (%hash)->readonly ();
+  tied (%hash)->readonly (1);
+
+Setting read-only accepts 3 states:
+
+=over 2
+
+=item false (C<undef>, C<"">, C<0>)
+
+This will (re)set the hash to read-write.
+
+=item C<1>
+
+This will set read-only. When attempting to make changes, a warning is given.
+
+=item C<2>
+
+This will set read-only. When attempting to make changes, the process will die.
+
+=back
 
 =head1 PREREQUISITES
 
