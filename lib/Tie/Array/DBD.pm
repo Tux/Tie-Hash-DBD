@@ -1,6 +1,6 @@
 package Tie::Array::DBD;
 
-our $VERSION = "0.24";
+our $VERSION = "0.25";
 
 use strict;
 use warnings;
@@ -85,6 +85,10 @@ sub _create_table {
 	};
     $exists and return;	# Table already exists
 
+    if ($cnf->{ro}) {
+	carp "You cannot create tables when in read-only mode";
+	return;
+	}
     my $temp = $DB{$dbt}{temp};
     $cnf->{tmp} or $temp = "";
     local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
@@ -128,6 +132,7 @@ sub TIEARRAY {
 	tmp => $tmp,
 	ktp => $cnf->{t_key},
 	vtp => $cnf->{t_val},
+	ro  => 0,
 
 	_en => undef,
 	_de => undef,
@@ -140,6 +145,8 @@ sub TIEARRAY {
 	$opt->{fld} and $f_v      = $opt->{fld};
 	$opt->{tbl} and $h->{tbl} = $opt->{tbl};
 	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
+
+	exists $opt->{ro} and $h->{ro} = $opt->{ro};
 
 	if (my $str = $opt->{str}) {
 	    if ($str eq "Sereal") {
@@ -215,13 +222,13 @@ sub TIEARRAY {
 
     my $tbl = $h->{tbl};
 
-    $h->{ins} = $dbh->prepare ("insert into $tbl ($f_k, $f_v) values (?, ?)");
-    $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
-    $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?");
+    $h->{ins} = $dbh->prepare ("insert into $tbl ($f_k, $f_v) values (?, ?)") unless $h->{ro};
+    $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?")             unless $h->{ro};
+    $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?")     unless $h->{ro};
     $h->{sel} = $dbh->prepare ("select $f_v from $tbl where $f_k = ?");
     $h->{cnt} = $dbh->prepare ("select count(*) from $tbl");
     $h->{ctv} = $dbh->prepare ("select count(*) from $tbl where $f_k = ?");
-    $h->{uky} = $dbh->prepare ("update $tbl set $f_k = ? where $f_k = ?");
+    $h->{uky} = $dbh->prepare ("update $tbl set $f_k = ? where $f_k = ?")     unless $h->{ro};
 
     unless (exists $cnf->{pbind} && !$cnf->{pbind}) {
 	my $sth = $dbh->prepare ("select $f_k, $f_v from $tbl where 0 = 1");
@@ -273,6 +280,10 @@ sub _setmax {
 
 sub STORE {
     my ($self, $key, $value) = @_;
+    if ($self->{ro}) {
+	carp "You cannot store entries when in read-only mode";
+	return;
+	}
     my $v = $self->_stream ($value);
     $self->EXISTS ($key)
 	? $self->{upd}->execute ($v, $key)
@@ -282,6 +293,10 @@ sub STORE {
 
 sub DELETE {
     my ($self, $key) = @_;
+    if ($self->{ro}) {
+	carp "You cannot delete entries when in read-only mode";
+	return;
+	}
     $self->{sel}->execute ($key);
     my $r = $self->{sel}->fetch or return;
     $self->{del}->execute ($key);
@@ -291,6 +306,10 @@ sub DELETE {
 
 sub STORESIZE {
     my ($self, $size) = @_; # $size = $# + 1
+    if ($self->{ro}) {
+	carp "You cannot resize entries when in read-only mode";
+	return;
+	}
     $size--;
     $self->{dbh}->do ("delete from $self->{tbl} where $self->{f_k} > $size");
     $self->{max} = $size;
@@ -298,6 +317,10 @@ sub STORESIZE {
 
 sub CLEAR {
     my $self = shift;
+    if ($self->{ro}) {
+	carp "You cannot clear entries when in read-only mode";
+	return;
+	}
     $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     $self->{max} = -1;
     } # CLEAR
@@ -319,20 +342,30 @@ sub FETCH {
 
 sub PUSH {
     my ($self, @val) = @_;
-    for (@val) {
-	$self->STORE (++$self->{max}, $_);
+    if ($self->{ro}) {
+	carp "You cannot push entries when in read-only mode";
+	return;
 	}
+    $self->STORE (++$self->{max}, $_) for @val;
     return $self->FETCHSIZE;
     } # PUSH
 
 sub POP {
     my $self = shift;
+    if ($self->{ro}) {
+	carp "You cannot pop entries when in read-only mode";
+	return;
+	}
     $self->{max} >= 0 or return;
     $self->DELETE ($self->{max});
     } # POP
 
 sub SHIFT {
     my $self = shift;
+    if ($self->{ro}) {
+	carp "You cannot shift entries when in read-only mode";
+	return;
+	}
     my $val  = $self->DELETE (0);
     $self->{uky}->execute ($_ - 1, $_) for 1 .. $self->{max};
     $self->{max}--;
@@ -342,6 +375,10 @@ sub SHIFT {
 sub UNSHIFT {
     my ($self, @val) = @_;
     @val or return;
+    if ($self->{ro}) {
+	carp "You cannot unshift entries when in read-only mode";
+	return;
+	}
     my $incr = scalar @val;
     $self->{uky}->execute ($_ + $incr, $_) for reverse 0 .. $self->{max};
     $self->{max} += $incr;
@@ -375,6 +412,10 @@ sub SPLICE {
     my $nargs = $#_;
     my ($self, $off, $len, @new, @val) = @_;
 
+    if ($self->{ro}) {
+	carp "You cannot splice entries when in read-only mode";
+	return;
+	}
     # splice @array;
     if ($nargs == 0) {
 	if (wantarray) {
@@ -477,6 +518,10 @@ sub DESTROY {
     delete $self->{$_} for qw( _de _en );
     if ($self->{tmp}) {
 	$dbh->{AutoCommit} or $dbh->rollback;
+	if ($self->{ro}) { # Unlikely, but just to be sure
+	    carp "You cannot drop tables when in read-only mode";
+	    return;
+	    }
 	$dbh->do ("drop table ".$self->{tbl});
 	}
     $dbh->{AutoCommit} or $dbh->commit;
@@ -507,6 +552,7 @@ Tie::Array::DBD - tie a plain array to a database table
       key => "h_key",
       fld => "h_value",
       str => "Storable",
+      ro  => 0,
       };
 
   $array[42] = $value;  # INSERT
@@ -600,6 +646,14 @@ is C<h_value>.
 
 Defines the type of the fld field in the database table.  The default is
 depending on the underlying database and most likely some kind of BLOB.
+
+=item ro
+
+Set handle to read-only for this tie. Useful when using existing tables or
+views than cannot be updated.
+
+When attempting to alter data (add, delete, change) a warning is issued
+and the action is ignored.
 
 =item str
 

@@ -1,6 +1,6 @@
 package Tie::Hash::DBD;
 
-our $VERSION = "0.24";
+our $VERSION = "0.25";
 
 use strict;
 use warnings;
@@ -91,6 +91,10 @@ sub _create_table {
 	};
     $exists and return;	# Table already exists
 
+    if ($cnf->{ro}) {
+	carp "You cannot create tables when in read-only mode";
+	return;
+	}
     my $temp = $DB{$dbt}{temp};
     $cnf->{tmp} or $temp = "";
     local $dbh->{AutoCommit} = 1 unless $dbt eq "CSV" || $dbt eq "Unify";
@@ -136,6 +140,7 @@ sub TIEHASH {
 	trh => 0,
 	ktp => $cnf->{t_key},
 	vtp => $cnf->{t_val},
+	ro  => 0,
 
 	_en => undef,
 	_de => undef,
@@ -150,6 +155,8 @@ sub TIEHASH {
 	$opt->{trh} and $h->{trh} = $opt->{trh};
 	$opt->{ktp} and $h->{ktp} = $opt->{ktp};
 	$opt->{vtp} and $h->{vtp} = $opt->{vtp};
+
+	exists $opt->{ro} and $h->{ro} = $opt->{ro};
 
 	if (my $str = $opt->{str}) {
 	    if ($str eq "Sereal") {
@@ -228,9 +235,9 @@ sub TIEHASH {
 
     my $tbl = $h->{tbl};
 
-    $h->{ins} = $dbh->prepare ("insert into $tbl ($f_k, $f_v) values (?, ?)");
-    $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?");
-    $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?");
+    $h->{ins} = $dbh->prepare ("insert into $tbl ($f_k, $f_v) values (?, ?)") unless $h->{ro};
+    $h->{del} = $dbh->prepare ("delete from $tbl where $f_k = ?")             unless $h->{ro};
+    $h->{upd} = $dbh->prepare ("update $tbl set $f_v = ? where $f_k = ?")     unless $h->{ro};
     $h->{sel} = $dbh->prepare ("select $f_v from $tbl where $f_k = ?");
     $h->{cnt} = $dbh->prepare ("select count(*) from $tbl");
     $h->{ctv} = $dbh->prepare ("select count(*) from $tbl where $f_k = ?");
@@ -270,6 +277,10 @@ sub _unstream {
 
 sub STORE {
     my ($self, $key, $value) = @_;
+    if ($self->{ro}) {
+	carp "You cannot store entries when in read-only mode";
+	return;
+	}
     my $k = $self->{asc} ? unpack "H*", $key : $key;
     my $v = $self->_stream ($value);
     $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
@@ -282,6 +293,10 @@ sub STORE {
 
 sub DELETE {
     my ($self, $key) = @_;
+    if ($self->{ro}) {
+	carp "You cannot delete entries when in read-only mode";
+	return;
+	}
     $self->{asc} and $key = unpack "H*", $key;
     $self->{trh} and $self->{dbh}->begin_work unless $self->{dbt} eq "SQLite";
     $self->{sel}->execute ($key);
@@ -298,6 +313,10 @@ sub DELETE {
 
 sub CLEAR {
     my $self = shift;
+    if ($self->{ro}) {
+	carp "You cannot clear entries when in read-only mode";
+	return;
+	}
     $self->{dbh}->do ("$DB{$self->{dbt}}{clear} $self->{tbl}");
     } # CLEAR
 
@@ -364,6 +383,10 @@ sub DESTROY {
     delete $self->{$_} for qw( _de _en );
     if ($self->{tmp}) {
 	$dbh->{AutoCommit} or $dbh->rollback;
+	if ($self->{ro}) { # Unlikely, but just to be sure
+	    carp "You cannot drop tables when in read-only mode";
+	    return;
+	    }
 	$dbh->do ("drop table ".$self->{tbl});
 	}
     $dbh->{AutoCommit} or $dbh->commit;
@@ -395,6 +418,7 @@ Tie::Hash::DBD - tie a plain hash to a database table
       fld => "h_value",
       str => "Storable",
       trh => 0,
+      ro  => 0,
       };
 
   $hash{key} = $value;  # INSERT
@@ -500,6 +524,14 @@ is C<h_value>.
 
 Defines the type of the fld field in the database table.  The default is
 depending on the underlying database and most likely some kind of BLOB.
+
+=item ro
+
+Set handle to read-only for this tie. Useful when using existing tables or
+views than cannot be updated.
+
+When attempting to alter data (add, delete, change) a warning is issued
+and the action is ignored.
 
 =item str
 

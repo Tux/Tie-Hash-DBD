@@ -54,6 +54,7 @@ tie my @array, &quot;Tie::Array::DBD&quot;, $dbh, {
     key =&gt; &quot;h_key&quot;,
     fld =&gt; &quot;h_value&quot;,
     str =&gt; &quot;Storable&quot;,
+    ro  =&gt; 0,
     };
 
 $array[42] = $value;  # INSERT
@@ -130,6 +131,14 @@ unshift @array, $_;
 <dd>
 
 <p>Defines the type of the fld field in the database table. The default is depending on the underlying database and most likely some kind of BLOB.</p>
+
+</dd>
+<dt id="ro">ro</dt>
+<dd>
+
+<p>Set handle to read-only for this tie. Useful when using existing tables or views than cannot be updated.</p>
+
+<p>When attempting to alter data (add, delete, change) a warning is issued and the action is ignored.</p>
 
 </dd>
 <dt id="str">str</dt>

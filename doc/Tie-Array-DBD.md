@@ -16,6 +16,7 @@ Tie::Array::DBD - tie a plain array to a database table
         key => "h_key",
         fld => "h_value",
         str => "Storable",
+        ro  => 0,
         };
 
     $array[42] = $value;  # INSERT
@@ -107,6 +108,14 @@ options. The following options are recognized:
 
     Defines the type of the fld field in the database table.  The default is
     depending on the underlying database and most likely some kind of BLOB.
+
+- ro
+
+    Set handle to read-only for this tie. Useful when using existing tables or
+    views than cannot be updated.
+
+    When attempting to alter data (add, delete, change) a warning is issued
+    and the action is ignored.
 
 - str
 

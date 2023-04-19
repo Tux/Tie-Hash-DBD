@@ -17,6 +17,7 @@ Tie::Hash::DBD - tie a plain hash to a database table
         fld => "h_value",
         str => "Storable",
         trh => 0,
+        ro  => 0,
         };
 
     $hash{key} = $value;  # INSERT
@@ -120,6 +121,14 @@ options. The following options are recognized:
 
     Defines the type of the fld field in the database table.  The default is
     depending on the underlying database and most likely some kind of BLOB.
+
+- ro
+
+    Set handle to read-only for this tie. Useful when using existing tables or
+    views than cannot be updated.
+
+    When attempting to alter data (add, delete, change) a warning is issued
+    and the action is ignored.
 
 - str
 
