@@ -120,8 +120,8 @@ options. The following options are recognized:
 - str
 
     Defines the required persistence module.   Currently supports the use of
-    `Storable`, `Sereal`,  `JSON`, `JSON::Syck`,  `YAML`, `YAML::Syck`
-    and `XML::Dumper`.
+    `Storable`, `Sereal`, `JSON`, `JSON::MaybeXS`, `JSON::SIMD`,
+    `JSON::Syck`, `JSON::XS`, `YAML`, `YAML::Syck` and `XML::Dumper`.
 
     The default is undefined.
 
@@ -155,7 +155,10 @@ options. The following options are recognized:
         Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
         Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
         JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+        JSON::MaybeXS x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+        JSON::SIMD    x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
         JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
+        JSON::XS      x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
         YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
         YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
         XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
@@ -182,7 +185,7 @@ about the data is also lost, which includes the `UTF8` flag.
 If you want to preserve the `UTF8` flag you will need to store internal
 flags and use the streamer option:
 
-    tie my @array, "Tie::Array::DBD", { str => "Storable" };
+    tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 
 If you do not want the performance impact of Storable just to be able to
 store and retrieve UTF-8 values, there are two ways to do so:
@@ -207,7 +210,7 @@ database encoding does not:
 all structure is lost when the data is stored and not available when the
 data is restored. To maintain deep structures, use the streamer option:
 
-    tie my @array, "Tie::Array::DBD", { str => "Storable" };
+    tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 
 Note that changes inside deep structures do not work. See ["TODO"](#todo).
 
@@ -283,4 +286,5 @@ it under the same terms as Perl itself.
 # SEE ALSO
 
 DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal,
-JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw
+JSON, JSON::MaybeXS, JSON::SIMD, JSON::Syck, JSON::XS, YAML, YAML::Syck,
+XML::Dumper, Bencode, FreezeThaw

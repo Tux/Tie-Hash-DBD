@@ -144,7 +144,7 @@ unshift @array, $_;
 <dt id="str">str</dt>
 <dd>
 
-<p>Defines the required persistence module. Currently supports the use of <code>Storable</code>, <code>Sereal</code>, <code>JSON</code>, <code>JSON::Syck</code>, <code>YAML</code>, <code>YAML::Syck</code> and <code>XML::Dumper</code>.</p>
+<p>Defines the required persistence module. Currently supports the use of <code>Storable</code>, <code>Sereal</code>, <code>JSON</code>, <code>JSON::MaybeXS</code>, <code>JSON::SIMD</code>, <code>JSON::Syck</code>, <code>JSON::XS</code>, <code>YAML</code>, <code>YAML::Syck</code> and <code>XML::Dumper</code>.</p>
 
 <p>The default is undefined.</p>
 
@@ -177,7 +177,10 @@ No streamer   x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
 Storable      x   x   x   x   x   x   x   x   x   x   -   -   -   -   -
 Sereal        x   x   x   x   x   x   x   x   x   x   x   x   -   -   -
 JSON          x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+JSON::MaybeXS x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
+JSON::SIMD    x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
 JSON::Syck    x   x   x   x   -   x   -   x   x   x   -   x   -   -   -
+JSON::XS      x   x   x   x   x   x   -   x   x   -   -   -   -   -   -
 YAML          x   x   x   x   -   x   x   x   x   x   x   x   -   -   -
 YAML::Syck    x   x   x   x   -   x   x   x   x   x   -   x   -   -   -
 XML::Dumper   x   x   x   x   x   x   x   x   x   x   -   x   -   -   -
@@ -199,7 +202,7 @@ Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -</code></
 
 <p>If you want to preserve the <code>UTF8</code> flag you will need to store internal flags and use the streamer option:</p>
 
-<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
+<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
 
 <p>If you do not want the performance impact of Storable just to be able to store and retrieve UTF-8 values, there are two ways to do so:</p>
 
@@ -219,7 +222,7 @@ $array[2] = encode &quot;UTF-8&quot;, &quot;The teddybear costs \x{20ac} 45.95&q
 
 <p><code>Tie::Array::DBD</code> stores values as binary data. This means that all structure is lost when the data is stored and not available when the data is restored. To maintain deep structures, use the streamer option:</p>
 
-<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
+<pre><code>tie my @array, &quot;Tie::Array::DBD&quot;, &quot;dbi:Pg:&quot;, { str =&gt; &quot;Storable&quot; };</code></pre>
 
 <p>Note that changes inside deep structures do not work. See <a href="#TODO">&quot;TODO&quot;</a>.</p>
 
@@ -300,7 +303,7 @@ $array[1][0]++; # No effect :(</code></pre>
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal, JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw</p>
+<p>DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal, JSON, JSON::MaybeXS, JSON::SIMD, JSON::Syck, JSON::XS, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw</p>
 
 
 </body>

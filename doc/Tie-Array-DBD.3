@@ -174,8 +174,8 @@ and the action is ignored.
 .IP str 2
 .IX Item "str"
 Defines the required persistence module.   Currently supports the use of
-\&\f(CW\*(C`Storable\*(C'\fR, \f(CW\*(C`Sereal\*(C'\fR,  \f(CW\*(C`JSON\*(C'\fR, \f(CW\*(C`JSON::Syck\*(C'\fR,  \f(CW\*(C`YAML\*(C'\fR, \f(CW\*(C`YAML::Syck\*(C'\fR
-and \f(CW\*(C`XML::Dumper\*(C'\fR.
+\&\f(CW\*(C`Storable\*(C'\fR, \f(CW\*(C`Sereal\*(C'\fR, \f(CW\*(C`JSON\*(C'\fR, \f(CW\*(C`JSON::MaybeXS\*(C'\fR, \f(CW\*(C`JSON::SIMD\*(C'\fR,
+\&\f(CW\*(C`JSON::Syck\*(C'\fR, \f(CW\*(C`JSON::XS\*(C'\fR, \f(CW\*(C`YAML\*(C'\fR, \f(CW\*(C`YAML::Syck\*(C'\fR and \f(CW\*(C`XML::Dumper\*(C'\fR.
 .Sp
 The default is undefined.
 .Sp
@@ -210,7 +210,10 @@ Here is a table of supported data types given a data structure like this:
 \& Storable      x   x   x   x   x   x   x   x   x   x   \-   \-   \-   \-   \-
 \& Sereal        x   x   x   x   x   x   x   x   x   x   x   x   \-   \-   \-
 \& JSON          x   x   x   x   x   x   \-   x   x   \-   \-   \-   \-   \-   \-
+\& JSON::MaybeXS x   x   x   x   x   x   \-   x   x   \-   \-   \-   \-   \-   \-
+\& JSON::SIMD    x   x   x   x   x   x   \-   x   x   \-   \-   \-   \-   \-   \-
 \& JSON::Syck    x   x   x   x   \-   x   \-   x   x   x   \-   x   \-   \-   \-
+\& JSON::XS      x   x   x   x   x   x   \-   x   x   \-   \-   \-   \-   \-   \-
 \& YAML          x   x   x   x   \-   x   x   x   x   x   x   x   \-   \-   \-
 \& YAML::Syck    x   x   x   x   \-   x   x   x   x   x   \-   x   \-   \-   \-
 \& XML::Dumper   x   x   x   x   x   x   x   x   x   x   \-   x   \-   \-   \-
@@ -238,7 +241,7 @@ If you want to preserve the \f(CW\*(C`UTF8\*(C'\fR flag you will need to store i
 flags and use the streamer option:
 .PP
 .Vb 1
-\&  tie my @array, "Tie::Array::DBD", { str => "Storable" };
+\&  tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 .Ve
 .PP
 If you do not want the performance impact of Storable just to be able to
@@ -268,7 +271,7 @@ all structure is lost when the data is stored and not available when the
 data is restored. To maintain deep structures, use the streamer option:
 .PP
 .Vb 1
-\&  tie my @array, "Tie::Array::DBD", { str => "Storable" };
+\&  tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 .Ve
 .PP
 Note that changes inside deep structures do not work. See "TODO".
@@ -344,4 +347,5 @@ it under the same terms as Perl itself.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal,
-JSON, JSON::Syck, YAML, YAML::Syck, XML::Dumper, Bencode, FreezeThaw
+JSON, JSON::MaybeXS, JSON::SIMD, JSON::Syck, JSON::XS, YAML, YAML::Syck,
+XML::Dumper, Bencode, FreezeThaw
