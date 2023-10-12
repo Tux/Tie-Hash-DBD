@@ -26,6 +26,10 @@ Tie::Hash::DBD - tie a plain hash to a database table
     $value = $hash{key};  # SELECT
     %hash = ();           # CLEAR
 
+    my $readonly = tied (%hash)->readonly ();
+    tied (%hash)->readonly (1);
+    $hash{foo} = 42; # FAIL
+
 # DESCRIPTION
 
 This module has been created to act as a drop-in replacement for modules
@@ -242,7 +246,29 @@ If a table was used with persistence, the table will not be dropped when
 the `untie` is called.  Dropping can be forced using the `drop` method
 at any moment while the hash is tied:
 
-    (tied %hash)->drop;
+    tied (%hash)->drop;
+
+## readonly
+
+You can inquire or set the readonly status of the bound hash. Note that
+setting read-only also forbids to delete generated temporary table.
+
+    my $readonly = tied (%hash)->readonly ();
+    tied (%hash)->readonly (1);
+
+Setting read-only accepts 3 states:
+
+- false (`undef`, `""`, `0`)
+
+    This will (re)set the hash to read-write.
+
+- `1`
+
+    This will set read-only. When attempting to make changes, a warning is given.
+
+- `2`
+
+    This will set read-only. When attempting to make changes, the process will die.
 
 # PREREQUISITES
 

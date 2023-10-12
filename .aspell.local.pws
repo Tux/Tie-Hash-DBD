@@ -1,4 +1,4 @@
-personal_ws-1.1 en 22 
+personal_ws-1.1 en 223
 Bencode
 CLOB
 DBD
@@ -12,6 +12,7 @@ mixins
 Mixins
 plugins
 Postgres
+readonly
 ro
 Storable
 str

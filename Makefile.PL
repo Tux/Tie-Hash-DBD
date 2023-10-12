@@ -84,10 +84,10 @@ sub postamble {
 	'	pod2man       < $? > $@',
 	'doc/Tie-Array-DBD.3:		lib/Tie/Array/DBD.pm',
 	'	pod2man       < $? > $@',
-	'doc/Tie-Hash-DBD.man:	doc/Tie-Hash-DBD.3',
-	'	nroff -mandoc < $? > $@',
-	'doc/Tie-Array-DBD.man:	doc/Tie-Array-DBD.3',
-	'	nroff -mandoc < $? > $@',
+	'doc/Tie-Hash-DBD.man:		doc/Tie-Hash-DBD.3',
+	'	nroff2man     < $? > $@',
+	'doc/Tie-Array-DBD.man:		doc/Tie-Array-DBD.3',
+	'	nroff2man     < $? > $@',
 	'',
 	$min_vsn;
     } # postamble

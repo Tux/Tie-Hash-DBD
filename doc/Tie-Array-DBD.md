@@ -35,6 +35,10 @@ Tie::Array::DBD - tie a plain array to a database table
     @k = keys   @array;   # $] >= 5.011
     @v = values @array;   # $] >= 5.011
 
+    my $readonly = tied (@array)->readonly ();
+    tied (@array)->readonly (1);
+    $array[4] = 42; # FAIL
+
 # DESCRIPTION
 
 This module ties an array to a database table using **only** an `index`
@@ -222,7 +226,29 @@ If a table was used with persistence, the table will not be dropped when
 the `untie` is called.  Dropping can be forced using the `drop` method
 at any moment while the array is tied:
 
-    (tied @array)->drop;
+    tied (@array)->drop;
+
+## readonly
+
+You can inquire or set the readonly status of the bound array. Note that
+setting read-only also forbids to delete generated temporary table.
+
+    my $readonly = tied (@array)->readonly ();
+    tied (@array)->readonly (1);
+
+Setting read-only accepts 3 states:
+
+- false (`undef`, `""`, `0`)
+
+    This will (re)set the array to read-write.
+
+- `1`
+
+    This will set read-only. When attempting to make changes, a warning is given.
+
+- `2`
+
+    This will set read-only. When attempting to make changes, the process will die.
 
 # PREREQUISITES
 

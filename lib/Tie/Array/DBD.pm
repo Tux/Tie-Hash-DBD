@@ -768,7 +768,7 @@ at any moment while the array is tied:
 =head2 readonly
 
 You can inquire or set the readonly status of the bound array. Note that
-setting read-only als forbids to delete generated temporary table.
+setting read-only also forbids to delete generated temporary table.
 
   my $readonly = tied (@array)->readonly ();
   tied (@array)->readonly (1);

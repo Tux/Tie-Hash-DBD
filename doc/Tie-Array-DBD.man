@@ -1,11 +1,9 @@
 STDIN(1)              User Contributed Perl Documentation             STDIN(1)
 
-
-
-[1mNAME[0m
+NAME
        Tie::Array::DBD - tie a plain array to a database table
 
-[1mSYNOPSIS[0m
+SYNOPSIS
          use DBI;
          use Tie::Array::DBD;
 
@@ -37,8 +35,12 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
          @k = keys   @array;   # $] >= 5.011
          @v = values @array;   # $] >= 5.011
 
-[1mDESCRIPTION[0m
-       This module ties an array to a database table using [1monly [22man "index" and
+         my $readonly = tied (@array)->readonly ();
+         tied (@array)->readonly (1);
+         $array[4] = 42; # FAIL
+
+DESCRIPTION
+       This module ties an array to a database table using only an "index" and
        a "value" field. If no tables specification is passed, this will create
        a temporary table with "h_key" for the key field and a "h_value" for
        the value field.
@@ -46,10 +48,10 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
        I think it would make sense  to merge the functionality that this
        module provides into "Tie::DBI".
 
-[1mtie[0m
+tie
        The tie call accepts two arguments:
 
-   [1mDatabase[0m
+   Database
        The first argument is the connection specifier.  This is either an open
        database handle or a "DBI_DSN" string.
 
@@ -78,19 +80,19 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
 
         "dbi:CSV:f_ext=.csv/r;csv_null=1;csv_decode_utf8=0"
 
-   [1mOptions[0m
+   Options
        The second argument is optional and should - if passed - be a hashref
        to options. The following options are recognized:
 
        tbl
-         Defines the name of the table to be used. If none is passed, a new
-         table is created with a unique name like "t_tie_dbda_42253_1". When
-         possible, the table is created as [4mtemporary[24m. After the session, this
+         Defines  the  name  of the table to be used. If none is passed, a new
+         table is created with a unique name like  "t_tie_dbda_42253_1".  When
+         possible,  the table is created as temporary. After the session, this
          table will be dropped.
 
-         If a table name is provided, it will be checked for existence. If
+         If a table name is provided, it will be  checked  for  existence.  If
          found, it will be used with the specified "key" and "fld".  Otherwise
-         it will be created with "key" and "fld", but it will not be dropped
+         it  will  be created with "key" and "fld", but it will not be dropped
          at the end of the session.
 
        key
@@ -98,34 +100,34 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
          is "h_key".
 
        fld
-         Defines the name of the value field in the database table.   The
+         Defines the name of the value field  in  the  database  table.    The
          default is "h_value".
 
        vtp
          Defines the type of the fld field in the database table.  The default
-         is depending on the underlying database and most likely some kind of
+         is  depending on the underlying database and most likely some kind of
          BLOB.
 
        ro
-         Set handle to read-only for this tie. Useful when using existing
+         Set handle to read-only for this  tie.  Useful  when  using  existing
          tables or views than cannot be updated.
 
-         When attempting to alter data (add, delete, change) a warning is
+         When  attempting  to  alter  data  (add, delete, change) a warning is
          issued and the action is ignored.
 
        str
          Defines the required persistence module.   Currently supports the use
-         of "Storable", "Sereal", "JSON", "JSON::MaybeXS", "JSON::SIMD",
+         of  "Storable",  "Sereal",  "JSON",  "JSON::MaybeXS",   "JSON::SIMD",
          "JSON::Syck", "JSON::XS", "YAML", "YAML::Syck" and "XML::Dumper".
 
          The default is undefined.
 
          Passing any other value will cause a "croak".
 
-         If you want to preserve Encoding on the hash values, you should use
+         If  you  want to preserve Encoding on the hash values, you should use
          this feature. (except where "PV8" has a "-" in the table below)
 
-         Here is a table of supported data types given a data structure like
+         Here is a table of supported data types given a data  structure  like
          this:
 
              my %deep = (
@@ -161,21 +163,21 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
           FreezeThaw    x   x   x   x   -   x   x   x   x   x   -   x   -   x   -
           Bencode       -   x   x   x   -   x   -   x   x   -   -   -   -   x   -
 
-         So, "Storable" does not support persistence of types "CODE",
-         "REGEXP", "FORMAT", "IO", and "GLOB". Be sure to test if all of your
+         So,   "Storable"  does  not  support  persistence  of  types  "CODE",
+         "REGEXP", "FORMAT", "IO", and "GLOB". Be sure to test if all of  your
          data types are supported by the serializer you choose. YMMV.
 
-         "No streamer"  might work inside the current process if reference
+         "No  streamer"   might  work  inside the current process if reference
          values are stored, but it is highly unlikely they are persistent.
 
-         Also note that this module does not yet support dynamic deep
+         Also note  that  this  module  does  not  yet  support  dynamic  deep
          structures.  See Nesting and deep structures.
 
-   [1mEncoding[0m
-       "Tie::Array::DBD" stores values as binary data. This means that all
-       Encoding and magic is lost when the data is stored, and thus is also
-       not available when the data is restored,  hence all internal
-       information about the data is also lost, which includes the "UTF8"
+   Encoding
+       "Tie::Array::DBD"  stores  values  as  binary data. This means that all
+       Encoding and magic is lost when the data is stored, and  thus  is  also
+       not   available   when  the  data  is  restored,   hence  all  internal
+       information about the data is also  lost,  which  includes  the  "UTF8"
        flag.
 
        If you want to preserve the "UTF8" flag you will need to store internal
@@ -183,7 +185,7 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
 
          tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 
-       If you do not want the performance impact of Storable just to be able
+       If  you  do not want the performance impact of Storable just to be able
        to store and retrieve UTF-8 values, there are two ways to do so:
 
          # Use utf-8 from database
@@ -194,52 +196,71 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
          tie my @array, "Tie::Array::DBD", "dbi:Pg:";
          $array[2] = encode "UTF-8", "The teddybear costs \x{20ac} 45.95";
 
-       Note  that using Encode will allow other binary data too where using
+       Note  that using Encode will allow other binary data  too  where  using
        the database encoding does not:
 
          $array[2] = pack "L>A*", time, encode "UTF-8", "Price: \x{20ac} 45.95";
 
-   [1mNesting and deep structures[0m
-       "Tie::Array::DBD" stores values as binary data. This means that all
-       structure is lost when the data is stored and not available when the
+   Nesting and deep structures
+       "Tie::Array::DBD"  stores  values  as  binary data. This means that all
+       structure is lost when the data is stored and not  available  when  the
        data is restored. To maintain deep structures, use the streamer option:
 
          tie my @array, "Tie::Array::DBD", "dbi:Pg:", { str => "Storable" };
 
        Note that changes inside deep structures do not work. See "TODO".
 
-[1mMETHODS[0m
-   [1mdrop ()[0m
-       If a table was used with persistence, the table will not be dropped
-       when the "untie" is called.  Dropping can be forced using the "drop"
+METHODS
+   drop ()
+       If  a  table  was  used with persistence, the table will not be dropped
+       when the "untie" is called.  Dropping can be forced  using  the  "drop"
        method at any moment while the array is tied:
 
-         (tied @array)->drop;
+         tied (@array)->drop;
 
-[1mPREREQUISITES[0m
-       The only real prerequisite is DBI but of course that uses the DBD
+   readonly
+       You  can  inquire  or  set the readonly status of the bound array. Note
+       that setting read-only  also  forbids  to  delete  generated  temporary
+       table.
+
+         my $readonly = tied (@array)->readonly ();
+         tied (@array)->readonly (1);
+
+       Setting read-only accepts 3 states:
+
+       false ("undef", "", 0)
+         This will (re)set the array to read-write.
+
+       1 This  will  set read-only. When attempting to make changes, a warning
+         is given.
+
+       2 This will set read-only. When attempting to make changes, the process
+         will die.
+
+PREREQUISITES
+       The only real prerequisite is DBI but  of  course  that  uses  the  DBD
        driver of your choice. Some drivers are (very) actively maintained.  Be
-       sure to to use recent Modules.  DBD::SQLite for example seems to
+       sure  to  to  use  recent  Modules.   DBD::SQLite  for example seems to
        require version 1.29 or up.
 
-[1mRESTRICTIONS and LIMITATIONS[0m
-       • "DBD::Oracle" limits the size of BLOB-reads to 4kb by default, which
-         is too small for reasonable data structures. Tie::Array::DBD locally
+RESTRICTIONS and LIMITATIONS
+       • "DBD::Oracle" limits the size of BLOB-reads to 4kb by default,  which
+         is  too small for reasonable data structures. Tie::Array::DBD locally
          raises this value to 4Mb, which is still an arbitrary limit.
 
        • "Storable" does not support persistence of perl types "IO", "REGEXP",
          "CODE", "FORMAT", and "GLOB".  Future extensions might implement some
-         alternative streaming modules, like "Data::Dump::Streamer" or use
+         alternative streaming modules,  like  "Data::Dump::Streamer"  or  use
          mixin approaches that enable you to fit in your own.
 
        • Note that neither DBD::CSV nor DBD::Unify support "AutoCommit".
 
-       • For now, Firebird does not support "TEXT" (or "CLOB") in
+       • For   now,   Firebird   does   not  support  "TEXT"  (or  "CLOB")  in
          DBD::Firebird at a level required by Tie::Array::DBD.
 
          Firebird support is stalled.
 
-[1mTODO[0m
+TODO
        Update on deep changes
          Currently,  nested structures do not get updated when it is an change
          in a deeper part.
@@ -254,27 +275,25 @@ STDIN(1)              User Contributed Perl Documentation             STDIN(1)
            $array[1][0]++; # No effect :(
 
        Documentation
-         Better document what the implications are of storing  [4mdata[24m content in
+         Better document what the implications are of storing  data content in
          a database and restoring that. It will not be fool proof.
 
        Mixins
-         Maybe: implement a feature that would enable plugins or mixins to do
+         Maybe: implement a feature that would enable plugins or mixins to  do
          the streaming or preservation of other data attributes.
 
-[1mAUTHOR[0m
+AUTHOR
        H.Merijn Brand <h.m.brand@xs4all.nl>
 
-[1mCOPYRIGHT AND LICENSE[0m
+COPYRIGHT AND LICENSE
        Copyright (C) 2010-2023 H.Merijn Brand
 
        This library is free software; you can redistribute it and/or modify it
        under the same terms as Perl itself.
 
-[1mSEE ALSO[0m
+SEE ALSO
        DBI, Tie::DBI, Tie::Array, Tie::Hash::DBD, DBM::Deep, Storable, Sereal,
-       JSON, JSON::MaybeXS, JSON::SIMD, JSON::Syck, JSON::XS, YAML,
+       JSON,    JSON::MaybeXS,   JSON::SIMD,   JSON::Syck,   JSON::XS,   YAML,
        YAML::Syck, XML::Dumper, Bencode, FreezeThaw
 
-
-
-perl v5.36.0                      2023-04-19                          STDIN(1)
+perl v5.38.0                      2023-10-12                          STDIN(1)

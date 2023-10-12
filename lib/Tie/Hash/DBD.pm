@@ -671,7 +671,7 @@ at any moment while the hash is tied:
 =head2 readonly
 
 You can inquire or set the readonly status of the bound hash. Note that
-setting read-only als forbids to delete generated temporary table.
+setting read-only also forbids to delete generated temporary table.
 
   my $readonly = tied (%hash)->readonly ();
   tied (%hash)->readonly (1);

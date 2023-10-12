@@ -26,6 +26,7 @@
   <li><a href="#METHODS">METHODS</a>
     <ul>
       <li><a href="#drop">drop ()</a></li>
+      <li><a href="#readonly">readonly</a></li>
     </ul>
   </li>
   <li><a href="#PREREQUISITES">PREREQUISITES</a></li>
@@ -71,7 +72,11 @@ $_ = shift @array;
 unshift @array, $_;
 @a = splice @array, 2, -2, 5..9;
 @k = keys   @array;   # $] &gt;= 5.011
-@v = values @array;   # $] &gt;= 5.011</code></pre>
+@v = values @array;   # $] &gt;= 5.011
+
+my $readonly = tied (@array)-&gt;readonly ();
+tied (@array)-&gt;readonly (1);
+$array[4] = 42; # FAIL</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -232,7 +237,38 @@ $array[2] = encode &quot;UTF-8&quot;, &quot;The teddybear costs \x{20ac} 45.95&q
 
 <p>If a table was used with persistence, the table will not be dropped when the <code>untie</code> is called. Dropping can be forced using the <code>drop</code> method at any moment while the array is tied:</p>
 
-<pre><code>(tied @array)-&gt;drop;</code></pre>
+<pre><code>tied (@array)-&gt;drop;</code></pre>
+
+<h2 id="readonly">readonly</h2>
+
+<p>You can inquire or set the readonly status of the bound array. Note that setting read-only also forbids to delete generated temporary table.</p>
+
+<pre><code>my $readonly = tied (@array)-&gt;readonly ();
+tied (@array)-&gt;readonly (1);</code></pre>
+
+<p>Setting read-only accepts 3 states:</p>
+
+<dl>
+
+<dt id="false-undef-0">false (<code>undef</code>, <code>&quot;&quot;</code>, <code>0</code>)</dt>
+<dd>
+
+<p>This will (re)set the array to read-write.</p>
+
+</dd>
+<dt id="pod1"><code>1</code></dt>
+<dd>
+
+<p>This will set read-only. When attempting to make changes, a warning is given.</p>
+
+</dd>
+<dt id="pod2"><code>2</code></dt>
+<dd>
+
+<p>This will set read-only. When attempting to make changes, the process will die.</p>
+
+</dd>
+</dl>
 
 <h1 id="PREREQUISITES">PREREQUISITES</h1>
 
