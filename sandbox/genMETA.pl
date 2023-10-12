@@ -41,7 +41,7 @@ version:                 VERSION
 abstract:                Tie plain hashes to DBI interface
 license:                 perl
 author:
-    - H.Merijn Brand <h.m.brand@xs4all.nl>
+    - H.Merijn Brand <hmbrand@cpan.org>
 generated_by:            Author
 distribution_type:       module
 provides:
@@ -58,18 +58,23 @@ requires:
     Storable:            0
 configure_requires:
     ExtUtils::MakeMaker: 0
+configure_recommends:
+    ExtUtils::MakeMaker: 7.22
+configure_suggests:
+    ExtUtils::MakeMaker: 7.70
 test_requires:
     Test::Harness:       0
     Test::More:          0.90
     Time::HiRes:         0
 recommends:
     DBI:                 1.643
-    DBD::SQLite:         1.72
-    DBD::Pg:             3.16.3
+    DBD::SQLite:         1.74
+    DBD::Pg:             3.17.0
     DBD::CSV:            0.60
-    Sereal:              5.003
+    Sereal:              5.004
+    Storable:            3.32
 test_recommends:
-    Test::More:          1.302194
+    Test::More:          1.302195
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          https://github.com/Tux/Tie-Hash-DBD
