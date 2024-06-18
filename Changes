@@ -1,8 +1,9 @@
-0.25	- 04 Jan 2024, H.Merijn Brand
+0.25	- 18 Jun 2024, H.Merijn Brand
     * Add ro option (ReadOnly)
     * Add support for serializers JSON::MaybeXS, JSON::XS & JSON::SIMD
     * Doc fixes for groff-1.24
     * It's 2024
+    * Fix parallel testing for SQLite
 
 0.24	- 06 Jan 2023, H.Merijn Brand
     * It's 2022

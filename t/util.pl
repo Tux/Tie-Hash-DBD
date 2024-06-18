@@ -132,8 +132,6 @@ sub cleanup {
 	    unlink $tempdb;
 	    return;
 	    }
-	my @db = sort glob "db*.3*" or return;
-	unlink $_ for @db;
 	return;
 	}
 
