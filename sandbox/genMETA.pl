@@ -74,7 +74,7 @@ recommends:
     Sereal:              5.004
     Storable:            3.32
 test_recommends:
-    Test::More:          1.302198
+    Test::More:          1.302199
 resources:
     license:             http://dev.perl.org/licenses/
     repository:          https://github.com/Tux/Tie-Hash-DBD

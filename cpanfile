@@ -22,5 +22,5 @@ on "test" => sub {
     requires   "Test::More"               => "0.90";
     requires   "Time::HiRes";
 
-    recommends "Test::More"               => "1.302198";
+    recommends "Test::More"               => "1.302199";
     };
