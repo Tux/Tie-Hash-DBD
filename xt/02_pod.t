@@ -1,7 +1,11 @@
 #!/usr/bin/perl
 
-use Test::More;
+use strict;
+use warnings;
 
-eval "use Test::Pod::Links tests => 1";
-plan skip_all => "Test::Pod::Links required for testing POD Links" if $@;
+eval "use Test::Pod::Links";
+if ($@) {
+    warn "Test::Pod::Links not available\n";
+    exit 0;
+    }
 Test::Pod::Links->new->all_pod_files_ok;

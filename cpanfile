@@ -4,8 +4,8 @@ requires   "Storable";
 
 recommends "DBD::CSV"                 => "0.60";
 recommends "DBD::Pg"                  => "3.18.0";
-recommends "DBD::SQLite"              => "1.74";
-recommends "DBI"                      => "1.643";
+recommends "DBD::SQLite"              => "1.76";
+recommends "DBI"                      => "1.645";
 recommends "Sereal"                   => "5.004";
 recommends "Storable"                 => "3.32";
 
@@ -22,5 +22,5 @@ on "test" => sub {
     requires   "Test::More"               => "0.90";
     requires   "Time::HiRes";
 
-    recommends "Test::More"               => "1.302199";
+    recommends "Test::More"               => "1.302207";
     };
