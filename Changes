@@ -1,4 +1,4 @@
-0.25	- 18 Jun 2024, H.Merijn Brand
+0.25	- 17 Mar 2025, H.Merijn Brand
     * Add ro option (ReadOnly)
     * Add support for serializers JSON::MaybeXS, JSON::XS & JSON::SIMD
     * Doc fixes for groff-1.24
